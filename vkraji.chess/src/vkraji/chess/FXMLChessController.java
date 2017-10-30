@@ -7,8 +7,10 @@ package vkraji.chess;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import vkraji.chess.models.ChessBoard;
 
@@ -21,6 +23,9 @@ public class FXMLChessController implements Initializable {
 
     @FXML
     private BorderPane bpMain;
+    
+    @FXML
+    private Label lblTime;
     /**
      * Initializes the controller class.
      */
@@ -31,6 +36,8 @@ public class FXMLChessController implements Initializable {
         ChessBoard board = new ChessBoard();
         board.setGridLinesVisible(true);
         bpMain.setCenter(board);
+        
+        Platform.runLater(new TimeThread(lblTime));
     }    
     
 }
