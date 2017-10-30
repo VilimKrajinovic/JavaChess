@@ -8,6 +8,7 @@ package vkraji.chess;
 import java.time.LocalDateTime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javax.print.attribute.standard.DateTimeAtCompleted;
 
@@ -23,6 +24,7 @@ public class TimeThread implements Runnable {
        this.lblTime = lblTime;
     }
     
+
     @Override
     public void run() {
         while(true){
