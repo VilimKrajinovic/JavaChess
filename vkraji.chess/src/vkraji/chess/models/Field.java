@@ -27,6 +27,21 @@ public class Field extends Button {
         this.setMaxSize(50, 50);
         this.setMinSize(50, 50);
     }
+    
+
+    public Piece releasePiece(){
+        Piece tmp = this.piece;
+        setPiece(null);
+        return tmp;
+    }
+    
+    public ChessColor getPieceColor(){
+        if(this.piece!=null){
+            return piece.getColor();
+        }else{
+            return null;
+        }
+    }
 
     public boolean isOccupied() {
         return this.piece != null;

@@ -31,7 +31,7 @@ public class Pawn extends Piece {
             white.add(Movement.UP_RIGHT);
             white.add(Movement.UP_LEFT);
             
-            if(this.isHasMoved()){
+            if(!this.isHasMoved()){
                 white.add(Movement.UP_DOUBLE);
             }
             movement = white.toArray(movement);
@@ -42,7 +42,7 @@ public class Pawn extends Piece {
             black.add(Movement.DOWN_RIGHT);
             black.add(Movement.DOWN_LEFT);
             
-            if(this.isHasMoved()){
+            if(!this.isHasMoved()){
                 black.add(Movement.DOWN_DOUBLE);
             }
             movement = black.toArray(movement);

@@ -6,7 +6,9 @@
 package vkraji.chess.models;
 
 import javafx.scene.layout.GridPane;
+import vkraji.chess.models.pieces.Movement;
 import vkraji.chess.models.pieces.Pawn;
+import vkraji.chess.models.pieces.Piece;
 
 /**
  *
@@ -43,11 +45,47 @@ public class ChessBoard extends GridPane {
     }
 
     private void onFieldClick(int x, int y) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Field clickedField = fields[x][y];
+
+        //if a piece is trying to get moved
+        if (this.selectedField != null
+                && this.selectedField.isOccupied()
+                && clickedField.getPieceColor() != this.selectedField.getPieceColor()) {
+            
+            Move move = new Move(this.selectedField.getX(), this.selectedField.getY(), x, y);
+            
+            this.processMove(move);
+            
+            this.selectedField=null;
+
+        }else{
+            if(fields[x][y].getPiece()!= null){
+                setSelectedField(fields[x][y]);
+            }
+        }
+    }
+
+    public Field getSelectedField() {
+        return selectedField;
+    }
+
+    public void setSelectedField(Field selectedField) {
+        this.selectedField = selectedField;
+    }
+    
+    private void processMove(Move move){
+        if(checkMove(move)){
+            Field oldField= fields[move.getOldX()][move.getOldY()];
+            Field newField= fields[move.getNewX()][move.getNewY()];
+            
+            newField.setPiece(oldField.releasePiece());
+        }else{
+            return;
+        }
     }
 
     private void initializeBoard() {
-        
+
         //TODO implement all chess pieces
         this.fields[0][0].setPiece(new Pawn(ChessColor.WHITE));
         this.fields[1][0].setPiece(new Pawn(ChessColor.WHITE));
@@ -76,5 +114,26 @@ public class ChessBoard extends GridPane {
         for (int i = 0; i < this.fields[0].length; i++) {
             this.fields[i][6].setPiece(new Pawn(ChessColor.BLACK));
         }
+    }
+
+    private boolean checkMove(Move move) {
+        
+        Field oldField;
+        Field newField;
+        Piece piece;
+        Movement[] movement;
+        
+        if(move == null)
+            return false;
+        
+        oldField = fields[move.getOldX()][move.getOldY()];
+        newField = fields[move.getNewX()][move.getOldY()];
+        
+        //TODO
+        piece=oldField.getPiece();
+        movement = piece.getMovement();
+        
+        //JUST TO COMPILE; CHANGE LATER
+        return true;
     }
 }

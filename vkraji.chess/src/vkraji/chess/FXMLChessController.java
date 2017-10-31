@@ -7,6 +7,8 @@ package vkraji.chess;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.Timer;
+import java.util.TimerTask;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -37,7 +39,15 @@ public class FXMLChessController implements Initializable {
         board.setGridLinesVisible(true);
         bpMain.setCenter(board);
         
-        Platform.runLater(new TimeThread(lblTime));
-    }    
-    
+        Timer t = new Timer();
+        int delay = 1000;
+        
+        TimerTask clockTask = new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(new TimeThread(lblTime));
+            }
+        };
+        t.scheduleAtFixedRate(clockTask, 0, delay);
+    }
 }
