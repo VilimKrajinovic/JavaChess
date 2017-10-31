@@ -13,12 +13,10 @@ import vkraji.chess.models.ChessColor;
  * @author amd
  */
 public class Pawn extends Piece {
-
-    private static int VALUE_OF_PAWN = 1;
     
     public Pawn(ChessColor color) {
         super(color);
-        this.setValue(VALUE_OF_PAWN);
+        this.setValue(Constants.VALUE_OF_PAWN);
     }
 
     @Override
@@ -53,7 +51,7 @@ public class Pawn extends Piece {
 
     @Override
     public String getName() {
-        return "Pawn";
+        return "pawn";
     }
 
 }

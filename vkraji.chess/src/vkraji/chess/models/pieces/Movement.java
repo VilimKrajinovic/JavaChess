@@ -24,9 +24,18 @@ public enum Movement {
     
     //Pawn first move?
     UP_DOUBLE(0,2),
-    DOWN_DOUBLE(0,-2)
+    DOWN_DOUBLE(0,-2),
     
-    //@TODO : Knight logic
+    //Knight
+    KNIGHT_LEFT_UP(-2, 1),
+    KNIGHT_UP_LEFT(-1, 2),
+    KNIGHT_UP_RIGHT(1, 2),
+    KNIGHT_RIGHT_UP(2, 1),
+    
+    KNIGHT_RIGHT_DOWN(2, -1),
+    KNIGHT_DOWN_RIGHT(1, -2),
+    KNIGHT_DOWN_LEFT(-1, -2),
+    KNIGHT_LEFT_DOWN(-2, -1),
     
     ;
 

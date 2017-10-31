@@ -30,11 +30,21 @@ public abstract class Piece {
     public abstract Movement[] getMovement();
     public abstract String getName();
     
+    private String getColorName(){
+        if(color == ChessColor.WHITE)
+            return "white";
+        else
+            return "black";
+    }
+    
     public Piece(ChessColor color){
         this.color = color;
         
         //TODO: make it so that the correct image gets used for each piece
-        this.image = new Image("vkraji/chess/assets/placeholder.png");
+        
+        String filename= getColorName() + "-" + this.getName()+".png";
+        String path = "vkraji/chess/assets/";
+        this.image = new Image(path+filename);
     }
 
     public boolean isHasMoved() {
