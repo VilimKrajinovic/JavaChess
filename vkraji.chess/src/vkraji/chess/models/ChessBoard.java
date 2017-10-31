@@ -90,34 +90,32 @@ public class ChessBoard extends GridPane {
     }
 
     private void initializeBoard() {
-
-        //TODO implement all chess pieces
-        this.fields[0][0].setPiece(new Rook(ChessColor.     WHITE));
-        this.fields[1][0].setPiece(new Knight(ChessColor.   WHITE));
-        this.fields[2][0].setPiece(new Bishop(ChessColor.   WHITE));
-        this.fields[3][0].setPiece(new Queen(ChessColor.    WHITE));
-        this.fields[4][0].setPiece(new King(ChessColor.     WHITE));
-        this.fields[5][0].setPiece(new Bishop(ChessColor.   WHITE));
-        this.fields[6][0].setPiece(new Knight(ChessColor.   WHITE));
-        this.fields[7][0].setPiece(new Rook(ChessColor.     WHITE));
+        this.fields[0][0].setPiece(new Rook     (ChessColor.WHITE));
+        this.fields[1][0].setPiece(new Knight   (ChessColor.WHITE));
+        this.fields[2][0].setPiece(new Bishop   (ChessColor.WHITE));
+        this.fields[3][0].setPiece(new Queen    (ChessColor.WHITE));
+        this.fields[4][0].setPiece(new King     (ChessColor.WHITE));
+        this.fields[5][0].setPiece(new Bishop   (ChessColor.WHITE));
+        this.fields[6][0].setPiece(new Knight   (ChessColor.WHITE));
+        this.fields[7][0].setPiece(new Rook     (ChessColor.WHITE));
 
         //pawns
         for (int i = 0; i < this.fields[0].length; i++) {
-            this.fields[i][1].setPiece(new Pawn(ChessColor.WHITE));
+            this.fields[i][1].setPiece(new Pawn (ChessColor.WHITE));
         }
 
         // black pieces
-        this.fields[0][7].setPiece(new Rook(ChessColor.     BLACK));
-        this.fields[1][7].setPiece(new Knight(ChessColor.   BLACK));
-        this.fields[2][7].setPiece(new Bishop(ChessColor.   BLACK));
-        this.fields[3][7].setPiece(new Queen(ChessColor.    BLACK));
-        this.fields[4][7].setPiece(new King(ChessColor.     BLACK));
-        this.fields[5][7].setPiece(new Bishop(ChessColor.   BLACK));
-        this.fields[6][7].setPiece(new Knight(ChessColor.   BLACK));
-        this.fields[7][7].setPiece(new Rook(ChessColor.     BLACK));
+        this.fields[0][7].setPiece(new Rook     (ChessColor.BLACK));
+        this.fields[1][7].setPiece(new Knight   (ChessColor.BLACK));
+        this.fields[2][7].setPiece(new Bishop   (ChessColor.BLACK));
+        this.fields[3][7].setPiece(new Queen    (ChessColor.BLACK));
+        this.fields[4][7].setPiece(new King     (ChessColor.BLACK));
+        this.fields[5][7].setPiece(new Bishop   (ChessColor.BLACK));
+        this.fields[6][7].setPiece(new Knight   (ChessColor.BLACK));
+        this.fields[7][7].setPiece(new Rook     (ChessColor.BLACK));
 
         for (int i = 0; i < this.fields[0].length; i++) {
-            this.fields[i][6].setPiece(new Pawn(ChessColor.BLACK));
+            this.fields[i][6].setPiece(new Pawn (ChessColor.BLACK));
         }
     }
 
