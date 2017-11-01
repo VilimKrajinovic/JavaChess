@@ -5,6 +5,9 @@
  */
 package vkraji.chess.models.pieces;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import javafx.scene.image.Image;
 import vkraji.chess.models.ChessColor;
 
@@ -12,10 +15,10 @@ import vkraji.chess.models.ChessColor;
  *
  * @author amd
  */
-public abstract class Piece {
+public abstract class Piece implements Serializable{
     private boolean hasMoved; //pawn movement
     private boolean usesSingleMove;
-    private Image image; //TODO 
+    transient private Image image;
     private ChessColor color;
     private int value;
 
@@ -40,7 +43,6 @@ public abstract class Piece {
     public Piece(ChessColor color){
         this.color = color;
         
-        //TODO: make it so that the correct image gets used for each piece
         
         String filename= getColorName() + "-" + this.getName()+".png";
         String path = "vkraji/chess/assets/";
@@ -78,6 +80,14 @@ public abstract class Piece {
     public void setUsesSingleMove(boolean usesSingleMove) {
         this.usesSingleMove = usesSingleMove;
     }
+    
+    //private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
+    //    in.defaultReadObject();
+    //    
+    //    String filename= getColorName() + "-" + this.getName()+".png";
+    //    String path = "vkraji/chess/assets/";
+    //    this.image = new Image(path+filename);
+    //}
     
     
     

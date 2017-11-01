@@ -5,13 +5,14 @@
  */
 package vkraji.chess.models.pieces;
 
+import java.io.Serializable;
 import vkraji.chess.models.ChessColor;
 
 /**
  *
  * @author amd
  */
-public class King extends Piece {
+public class King extends Piece implements Serializable {
 
     
     public King(ChessColor color){
