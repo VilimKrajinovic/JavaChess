@@ -5,14 +5,21 @@
  */
 package vkraji.chess;
 
+import java.io.BufferedWriter;
 import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,7 +32,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import vkraji.chess.models.ChessBoard;
 import vkraji.chess.models.Field;
-import vkraji.chess.models.pieces.Constants;
+import vkraji.common.Constants;
 
 /**
  * FXML Controller class
@@ -60,10 +67,29 @@ public class FXMLChessController implements Initializable {
             }
         };
         t.scheduleAtFixedRate(clockTask, 0, delay);
+
+        try (BufferedWriter bw = new BufferedWriter(
+                new FileWriter("documentation.txt"))) {
+
+            bw.write(printClassDetails("vkraji.chess.models.ChessBoard"));
+            bw.write(printClassDetails("vkraji.chess.models.Field"));
+            bw.write(printClassDetails("vkraji.chess.models.Move"));
+            bw.write(printClassDetails("vkraji.chess.models.pieces.Piece"));
+            bw.write(printClassDetails("vkraji.chess.models.pieces.Bishop"));
+            bw.write(printClassDetails("vkraji.chess.models.pieces.King"));
+            bw.write(printClassDetails("vkraji.chess.models.pieces.Knight"));
+            bw.write(printClassDetails("vkraji.chess.models.pieces.Movement"));
+            bw.write(printClassDetails("vkraji.chess.models.pieces.Pawn"));
+            bw.write(printClassDetails("vkraji.chess.models.pieces.Queen"));
+            bw.write(printClassDetails("vkraji.chess.models.pieces.Rook"));
+            
+        } catch (IOException ex) {
+            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void onLoad() {
-        
+
         try (ObjectInputStream reader = new ObjectInputStream(
                 new FileInputStream(Constants.FILE_NAME))) {
 
@@ -87,22 +113,141 @@ public class FXMLChessController implements Initializable {
     public void onSave() {
         try (ObjectOutputStream oos = new ObjectOutputStream(
                 new FileOutputStream(Constants.FILE_NAME))) {
-
-            Field[][] tmp = board.getFields();
-            for (int x = 0; x < 8; x++) {
-                for (int y = 0; y < 8; y++) {
-                    if(tmp[x][y].isOccupied()){
-                        oos.writeObject(tmp[x][y]);
-                    }
-                }
-            }
-
+            oos.writeObject(board.getFields());
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private String printClassDetails(String name) {
+
+        try {
+            StringBuilder sb = new StringBuilder();
+
+            Class<?> tmp = Class.forName(name);
+            sb.append("Name: " + tmp.getName());
+
+            sb.append("Hierarchy:");
+            for (String s : getHierarchy(tmp)) {
+                System.out.print(s + "; ");
+            }
+            sb.append("\n");
+
+            sb.append("Methods:");
+            for (String s : getMethods(tmp)) {
+                sb.append(s + "; ");
+            }
+            sb.append("\n");
+
+            java.lang.reflect.Field[] fields = tmp.getDeclaredFields();
+            sb.append("List of private fields: ");
+            for (java.lang.reflect.Field field : fields) {
+                if (Modifier.isPrivate(field.getModifiers())) {
+                    sb.append("\t" + field.getName());
+                }
+            }
+
+            sb.append("List of public methods:");
+            Method[] methods = tmp.getMethods();
+
+            for (Method method : methods) {
+                if (Modifier.isPublic(method.getModifiers())) {
+                    sb.append(method.getName());
+                    if (method.getParameters().length > 0) {
+                        sb.append("\tMethod takes:");
+                        Parameter[] parameters = method.getParameters();
+                        for (Parameter parameter : parameters) {
+                            sb.append("\t\t" + parameter.getType() + " " + parameter.getName());
+                        }
+                    } else {
+                        sb.append("\tMethod doesnt take any paremeters.");
+                    }
+
+                    sb.append("\tMethod returns:");
+                    sb.append("\t\t" + method.getReturnType());
+                    sb.append("\n");
+                }
+            }
+
+            sb.append("Fields:");
+            for (String s : getFields(tmp)) {
+                sb.append(s + "; ");
+            }
+            sb.append("\n");
+            return sb.toString();
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    private Iterable<String> getModifiers(Class<?> tmp) {
+        List<String> modifiersList = new ArrayList<>();
+        int mod = tmp.getModifiers();
+
+        if (Modifier.isPrivate(mod)) {
+            modifiersList.add(Constants.MOD_PRIVATE);
+        }
+        if (Modifier.isPublic(mod)) {
+            modifiersList.add(Constants.MOD_PUBLIC);
+        }
+        if (Modifier.isProtected(mod)) {
+            modifiersList.add(Constants.MOD_PROTECTED);
+        }
+        if (Modifier.isStatic(mod)) {
+            modifiersList.add(Constants.MOD_STATIC);
+        }
+        if (Modifier.isAbstract(mod)) {
+            modifiersList.add(Constants.MOD_ABSTRACT);
+        }
+        if (Modifier.isFinal(mod)) {
+            modifiersList.add(Constants.MOD_FINAL);
+        }
+        if (Modifier.isInterface(mod)) {
+            modifiersList.add(Constants.MOD_INTERFACE);
+        }
+
+        return modifiersList;
+    }
+
+    private Iterable<String> getMethods(Class<?> tmp) {
+        List<String> methodList = new ArrayList<>();
+
+        String fullMethod = "";
+        for (Method m : tmp.getMethods()) {
+            for (String s : getModifiers(m.getClass())) {
+                fullMethod.concat(s + " ");
+            }
+            methodList.add(fullMethod + m.getName());
+            fullMethod = "";
+        }
+
+        return methodList;
+    }
+
+    private Iterable<String> getFields(Class<?> tmp) {
+        List<String> fieldList = new ArrayList<>();
+
+        for (java.lang.reflect.Field f : tmp.getDeclaredFields()) {
+            fieldList.add(f.getType() + ": " + f.getName());
+        }
+
+        return fieldList;
+    }
+
+    private Iterable<String> getHierarchy(Class<?> tmp) {
+        List<String> classList = new ArrayList<>();
+
+        Class<?> parentClass = tmp.getSuperclass();
+        while (parentClass != null) {
+            classList.add(parentClass.getName());
+            parentClass = parentClass.getSuperclass();
+        }
+
+        return classList;
     }
 
 }

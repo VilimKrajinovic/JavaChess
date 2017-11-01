@@ -5,6 +5,7 @@
  */
 package vkraji.chess.models.pieces;
 
+import vkraji.common.Constants;
 import java.io.Serializable;
 import java.util.ArrayList;
 import vkraji.chess.models.ChessColor;
