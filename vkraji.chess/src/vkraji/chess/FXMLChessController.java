@@ -127,26 +127,27 @@ public class FXMLChessController implements Initializable {
         try {
             StringBuilder sb = new StringBuilder();
 
+            sb.append("//////////////////////////////////////////////////////////////////////////////////////////////////////"+System.lineSeparator());
             Class<?> tmp = Class.forName(name);
-            sb.append("Name: " + tmp.getName());
+            sb.append("Name: " + tmp.getName()+ System.lineSeparator());
 
             sb.append("Hierarchy:");
             for (String s : getHierarchy(tmp)) {
                 System.out.print(s + "; ");
             }
-            sb.append("\n");
+            sb.append(System.lineSeparator());
 
             sb.append("Methods:");
             for (String s : getMethods(tmp)) {
                 sb.append(s + "; ");
             }
-            sb.append("\n");
+            sb.append(System.lineSeparator());
 
             java.lang.reflect.Field[] fields = tmp.getDeclaredFields();
             sb.append("List of private fields: ");
             for (java.lang.reflect.Field field : fields) {
                 if (Modifier.isPrivate(field.getModifiers())) {
-                    sb.append("\t" + field.getName());
+                    sb.append(System.lineSeparator() + field.getName());
                 }
             }
 
@@ -157,18 +158,18 @@ public class FXMLChessController implements Initializable {
                 if (Modifier.isPublic(method.getModifiers())) {
                     sb.append(method.getName());
                     if (method.getParameters().length > 0) {
-                        sb.append("\tMethod takes:");
+                        sb.append("\tMethod takes:"+System.lineSeparator());
                         Parameter[] parameters = method.getParameters();
                         for (Parameter parameter : parameters) {
                             sb.append("\t\t" + parameter.getType() + " " + parameter.getName());
                         }
                     } else {
-                        sb.append("\tMethod doesnt take any paremeters.");
+                        sb.append("\tMethod doesnt take any paremeters."+System.lineSeparator());
                     }
 
-                    sb.append("\tMethod returns:");
+                    sb.append("\tMethod returns:"+System.lineSeparator());
                     sb.append("\t\t" + method.getReturnType());
-                    sb.append("\n");
+                    sb.append(System.lineSeparator());
                 }
             }
 
@@ -176,7 +177,7 @@ public class FXMLChessController implements Initializable {
             for (String s : getFields(tmp)) {
                 sb.append(s + "; ");
             }
-            sb.append("\n");
+            sb.append(System.lineSeparator());
             return sb.toString();
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
