@@ -20,7 +20,7 @@ public abstract class Piece implements Serializable {
 
     private boolean hasMoved; //pawn movement
     private boolean usesSingleMove;
-    //transient private Image image; doesnt serialize, trying to save it with string filepath
+    //transient private Image image;        doesnt serialize, trying to save it with string filepath
     private ChessColor color;
     private int value;
     private String filePath;

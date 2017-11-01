@@ -5,11 +5,13 @@
  */
 package vkraji.chess.models.pieces;
 
+import java.io.Serializable;
+
 /**
  *
  * @author amd
  */
-public enum Movement {
+public enum Movement implements Serializable {
 
     //X, Y
     UP(0, 1),

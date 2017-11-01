@@ -5,6 +5,8 @@
  */
 package vkraji.chess.models;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
@@ -19,8 +21,7 @@ public class Field extends Button implements Serializable {
 
     private int x;
     private int y;
-    transient private Piece piece;
-    
+    private Piece piece;
 
     public Field(ChessColor color, int x, int y) {
         super();
@@ -30,18 +31,17 @@ public class Field extends Button implements Serializable {
         this.setMaxSize(50, 50);
         this.setMinSize(50, 50);
     }
-    
 
-    public Piece releasePiece(){
+    public Piece releasePiece() {
         Piece tmp = this.piece;
         setPiece(null);
         return tmp;
     }
-    
-    public ChessColor getPieceColor(){
-        if(this.piece!=null){
+
+    public ChessColor getPieceColor() {
+        if (this.piece != null) {
             return piece.getColor();
-        }else{
+        } else {
             return null;
         }
     }
@@ -49,17 +49,18 @@ public class Field extends Button implements Serializable {
     public boolean isOccupied() {
         return this.piece != null;
     }
-    
-    public Piece getPiece(){
+
+    public Piece getPiece() {
         return this.piece;
     }
-    
-    public void setPiece(Piece piece){
+
+    public void setPiece(Piece piece) {
         this.piece = piece;
-        if(isOccupied())
+        if (isOccupied()) {
             this.setGraphic(new ImageView(new Image(this.piece.getFilePath())));
-        else
+        } else {
             this.setGraphic(new ImageView());
+        }
     }
 
     public int getX() {

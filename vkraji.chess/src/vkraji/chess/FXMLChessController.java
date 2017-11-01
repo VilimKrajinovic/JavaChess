@@ -63,6 +63,7 @@ public class FXMLChessController implements Initializable {
     }
 
     public void onLoad() {
+        
         try (ObjectInputStream reader = new ObjectInputStream(
                 new FileInputStream(Constants.FILE_NAME))) {
 
@@ -87,7 +88,15 @@ public class FXMLChessController implements Initializable {
         try (ObjectOutputStream oos = new ObjectOutputStream(
                 new FileOutputStream(Constants.FILE_NAME))) {
 
-            oos.writeObject(board.getFields());
+            Field[][] tmp = board.getFields();
+            for (int x = 0; x < 8; x++) {
+                for (int y = 0; y < 8; y++) {
+                    if(tmp[x][y].isOccupied()){
+                        oos.writeObject(tmp[x][y]);
+                    }
+                }
+            }
+
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
