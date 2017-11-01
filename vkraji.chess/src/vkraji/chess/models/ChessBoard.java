@@ -29,6 +29,8 @@ public class ChessBoard extends GridPane {
     }
 
     public void setFields(Field[][] fields) {
+        
+        //when loading from file try to do something?
         this.fields = fields;
 
         
