@@ -9,18 +9,29 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import javafx.scene.image.Image;
+import javax.swing.ImageIcon;
 import vkraji.chess.models.ChessColor;
 
 /**
  *
  * @author amd
  */
-public abstract class Piece implements Serializable{
+public abstract class Piece implements Serializable {
+
     private boolean hasMoved; //pawn movement
     private boolean usesSingleMove;
-    transient private Image image;
+    //transient private Image image; doesnt serialize, trying to save it with string filepath
     private ChessColor color;
     private int value;
+    private String filePath;
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
 
     public int getValue() {
         return value;
@@ -29,24 +40,25 @@ public abstract class Piece implements Serializable{
     public void setValue(int value) {
         this.value = value;
     }
-    
+
     public abstract Movement[] getMovement();
+
     public abstract String getName();
-    
-    private String getColorName(){
-        if(color == ChessColor.WHITE)
+
+    private String getColorName() {
+        if (color == ChessColor.WHITE) {
             return "white";
-        else
+        } else {
             return "black";
+        }
     }
-    
-    public Piece(ChessColor color){
+
+    public Piece(ChessColor color) {
         this.color = color;
-        
-        
-        String filename= getColorName() + "-" + this.getName()+".png";
+
+        String filename = getColorName() + "-" + this.getName() + ".png";
         String path = "vkraji/chess/assets/";
-        this.image = new Image(path+filename);
+        this.filePath = path + filename;
     }
 
     public boolean isHasMoved() {
@@ -57,13 +69,13 @@ public abstract class Piece implements Serializable{
         this.hasMoved = hasMoved;
     }
 
-    public Image getImage() {
-        return image;
-    }
-
-    public void setImage(Image image) {
-        this.image = image;
-    }
+//    public Image getImage() {
+//        return image;
+//    }
+//
+//    public void setImage(Image image) {
+//        this.image = image;
+//    }
 
     public ChessColor getColor() {
         return color;
@@ -80,7 +92,7 @@ public abstract class Piece implements Serializable{
     public void setUsesSingleMove(boolean usesSingleMove) {
         this.usesSingleMove = usesSingleMove;
     }
-    
+
     //private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
     //    in.defaultReadObject();
     //    
@@ -88,8 +100,4 @@ public abstract class Piece implements Serializable{
     //    String path = "vkraji/chess/assets/";
     //    this.image = new Image(path+filename);
     //}
-    
-    
-    
-    
 }

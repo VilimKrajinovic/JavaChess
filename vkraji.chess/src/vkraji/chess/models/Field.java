@@ -7,6 +7,7 @@ package vkraji.chess.models;
 
 import java.io.Serializable;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import vkraji.chess.models.pieces.Piece;
 
@@ -18,7 +19,8 @@ public class Field extends Button implements Serializable {
 
     private int x;
     private int y;
-    private Piece piece;
+    transient private Piece piece;
+    
 
     public Field(ChessColor color, int x, int y) {
         super();
@@ -55,7 +57,7 @@ public class Field extends Button implements Serializable {
     public void setPiece(Piece piece){
         this.piece = piece;
         if(isOccupied())
-            this.setGraphic(new ImageView(this.piece.getImage()));
+            this.setGraphic(new ImageView(new Image(this.piece.getFilePath())));
         else
             this.setGraphic(new ImageView());
     }
