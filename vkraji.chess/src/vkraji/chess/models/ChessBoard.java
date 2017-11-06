@@ -5,7 +5,13 @@
  */
 package vkraji.chess.models;
 
+import java.util.Timer;
+import java.util.TimerTask;
+import javafx.application.Platform;
+import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import vkraji.chess.ChessTimerThread;
+import vkraji.chess.TimeThread;
 import vkraji.chess.models.pieces.Bishop;
 import vkraji.chess.models.pieces.King;
 import vkraji.chess.models.pieces.Knight;
@@ -21,6 +27,10 @@ import vkraji.chess.models.pieces.Rook;
  */
 public class ChessBoard extends GridPane {
 
+    private Label lblChessTimer;
+    private transient Object timerLock = new Object();
+    private ChessTimerThread timerThread;
+
     public Field[][] fields = new Field[8][8];
     public Field selectedField = null;
 
@@ -29,11 +39,10 @@ public class ChessBoard extends GridPane {
     }
 
     public void setFields(Field[][] fields) {
-        
+
         //when loading from file try to do something?
         this.fields = fields;
 
-        
         for (int x = 0; x < 8; ++x) {
             for (int y = 0; y < 8; ++y) {
                 this.add(fields[x][y], x, 7 - y);
@@ -41,8 +50,22 @@ public class ChessBoard extends GridPane {
         }
     }
 
-    public ChessBoard() {
+    public ChessBoard(Label lblChessTimer) {
         super();
+        
+        this.lblChessTimer = lblChessTimer;
+        this.lblChessTimer.setText("TEST");
+        
+        Timer t = new Timer();
+        int delay = 1000;
+        TimerTask clockTask = new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(new ChessTimerThread(lblChessTimer));
+            }
+        };
+        t.scheduleAtFixedRate(clockTask, 0, delay);
+
         this.setMinSize(400, 400);
         this.setMaxSize(400, 400);
 

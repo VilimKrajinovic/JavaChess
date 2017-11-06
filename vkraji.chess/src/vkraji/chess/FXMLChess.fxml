@@ -28,4 +28,7 @@
         </menus>
       </MenuBar>
    </top>
+   <right>
+      <Label fx:id="lblChessTimer" alignment="CENTER" text="Label" textAlignment="CENTER" BorderPane.alignment="CENTER" />
+   </right>
 </BorderPane>

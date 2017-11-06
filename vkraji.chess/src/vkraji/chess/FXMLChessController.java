@@ -46,8 +46,11 @@ public class FXMLChessController implements Initializable {
 
     @FXML
     private Label lblTime;
+    
+    @FXML
+    private Label lblChessTimer;        
 
-    ChessBoard board = new ChessBoard();
+    ChessBoard board;
 
     /**
      * Initializes the controller class.
@@ -55,6 +58,7 @@ public class FXMLChessController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+        board = new ChessBoard(lblChessTimer);
         board.setGridLinesVisible(true);
         bpMain.setCenter(board);
 
@@ -133,7 +137,7 @@ public class FXMLChessController implements Initializable {
 
             sb.append("Hierarchy:");
             for (String s : getHierarchy(tmp)) {
-                System.out.print(s + "; ");
+                sb.append(s + "; ");
             }
             sb.append(System.lineSeparator());
 

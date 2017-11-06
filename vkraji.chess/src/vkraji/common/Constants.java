@@ -10,6 +10,9 @@ package vkraji.common;
  * @author amd
  */
 public class Constants {
+    
+    public static final int TIME = 30 * 1000;
+    public static final int INTERVAL = 1000;
 
     public static final int VALUE_OF_PAWN = 1;
     public static final int VALUE_OF_KNIGHT = 3;
@@ -17,7 +20,6 @@ public class Constants {
     public static final int VALUE_OF_ROOK = 5;
     public static final int VALUE_OF_QUEEN = 9;
 
-    public static final String FILE_NAME = "board.dat";
 
     public static final String MOD_PRIVATE = "Private";
     public static final String MOD_PUBLIC = "Public";
@@ -26,4 +28,7 @@ public class Constants {
     public static final String MOD_ABSTRACT = "Abstract";
     public static final String MOD_FINAL = "Final";
     public static final String MOD_INTERFACE = "Interface";
+    
+    
+    public static final String FILE_NAME = "board.dat";
 }
