@@ -43,7 +43,7 @@ public class ChessBoard extends GridPane {
     }
 
     private void createTimer() {
-        timerThread = new Thread(() -> {
+        this.timerThread = new Thread(() -> {
             while (timeLeft > 0) {
                 synchronized (timerLock) {
                     try {
@@ -72,6 +72,9 @@ public class ChessBoard extends GridPane {
             }
 
         });
+        
+        this.timerThread.setName("Timer thread");
+        this.timerThread.start();
     }
 
     public void setFields(Field[][] fields) {
@@ -92,8 +95,6 @@ public class ChessBoard extends GridPane {
         this.lblChessTimer = lblChessTimer;
         this.lblChessTimer.setText("TEST");
 
-        createTimer();
-        
         this.setMinSize(400, 400);
         this.setMaxSize(400, 400);
 
@@ -114,6 +115,7 @@ public class ChessBoard extends GridPane {
             }
         }
 
+        createTimer();
         this.initializeBoard();
     }
 
@@ -138,6 +140,10 @@ public class ChessBoard extends GridPane {
         }
     }
 
+    private void resetTimer(){
+        this.timeLeft = Constants.TIME;
+    }
+    
     public Field getSelectedField() {
         return selectedField;
     }
@@ -152,6 +158,9 @@ public class ChessBoard extends GridPane {
             Field newField = fields[move.getNewX()][move.getNewY()];
 
             newField.setPiece(oldField.releasePiece());
+
+            resetTimer();
+            
         } else {
             return;
         }
