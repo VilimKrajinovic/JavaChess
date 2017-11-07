@@ -37,6 +37,7 @@ public class ChessBoard extends GridPane {
 
     public Field[][] fields = new Field[8][8];
     public Field selectedField = null;
+    private boolean timerPaused = false;
 
     public Field[][] getFields() {
         return fields;
@@ -46,7 +47,11 @@ public class ChessBoard extends GridPane {
         this.timerThread = new Thread(() -> {
             while (timeLeft > 0) {
                 synchronized (timerLock) {
+
                     try {
+                        if (this.timerPaused == true) {
+                            timerLock.wait();
+                        }
                         timer.scheduleAtFixedRate(new TimerTask() {
                             @Override
                             public void run() {
@@ -72,7 +77,7 @@ public class ChessBoard extends GridPane {
             }
 
         });
-        
+
         this.timerThread.setName("Timer thread");
         this.timerThread.start();
     }
@@ -93,7 +98,7 @@ public class ChessBoard extends GridPane {
         super();
 
         this.lblChessTimer = lblChessTimer;
-        this.lblChessTimer.setText("TEST");
+        this.lblChessTimer.setText("30");
 
         this.setMinSize(400, 400);
         this.setMaxSize(400, 400);
@@ -116,6 +121,7 @@ public class ChessBoard extends GridPane {
         }
 
         createTimer();
+        pauseTimer();
         this.initializeBoard();
     }
 
@@ -140,10 +146,21 @@ public class ChessBoard extends GridPane {
         }
     }
 
-    private void resetTimer(){
+    private void resetTimer() {
         this.timeLeft = Constants.TIME;
     }
-    
+
+    private void pauseTimer() {
+        this.timerPaused = true;
+    }
+
+    private void resumeTimer() {
+        synchronized (timerLock) {
+            this.timerPaused = false;
+            timerLock.notifyAll();
+        }
+    }
+
     public Field getSelectedField() {
         return selectedField;
     }
@@ -160,7 +177,8 @@ public class ChessBoard extends GridPane {
             newField.setPiece(oldField.releasePiece());
 
             resetTimer();
-            
+            resumeTimer();
+
         } else {
             return;
         }
@@ -206,6 +224,8 @@ public class ChessBoard extends GridPane {
         if (move == null) {
             return false;
         }
+        
+        pauseTimer();
 
         oldField = fields[move.getOldX()][move.getOldY()];
         newField = fields[move.getNewX()][move.getOldY()];
