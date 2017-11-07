@@ -5,6 +5,7 @@
  */
 package vkraji.chess.models;
 
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 import javafx.application.Platform;
@@ -20,6 +21,7 @@ import vkraji.chess.models.pieces.Pawn;
 import vkraji.chess.models.pieces.Piece;
 import vkraji.chess.models.pieces.Queen;
 import vkraji.chess.models.pieces.Rook;
+import vkraji.common.Constants;
 
 /**
  *
@@ -28,14 +30,48 @@ import vkraji.chess.models.pieces.Rook;
 public class ChessBoard extends GridPane {
 
     private Label lblChessTimer;
-    private transient Object timerLock = new Object();
-    private ChessTimerThread timerThread;
+    private Object timerLock = new Object();
+    private Thread timerThread;
+    private int timeLeft = Constants.TIME;
+    Timer timer = new Timer();
 
     public Field[][] fields = new Field[8][8];
     public Field selectedField = null;
 
     public Field[][] getFields() {
         return fields;
+    }
+
+    private void createTimer() {
+        timerThread = new Thread(() -> {
+            while (timeLeft > 0) {
+                synchronized (timerLock) {
+                    try {
+                        timer.scheduleAtFixedRate(new TimerTask() {
+                            @Override
+                            public void run() {
+                                Platform.runLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        lblChessTimer.setText(Integer.toString(timeLeft / 1000));
+                                        if (timeLeft < 0) {
+                                            timer.cancel();
+                                        }
+                                    }
+
+                                });
+                            }
+                        }, Calendar.getInstance().getTime(), Constants.INTERVAL);
+                        timerLock.wait(Constants.INTERVAL);
+                        timeLeft -= Constants.INTERVAL;
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+
+        });
     }
 
     public void setFields(Field[][] fields) {
@@ -52,20 +88,12 @@ public class ChessBoard extends GridPane {
 
     public ChessBoard(Label lblChessTimer) {
         super();
-        
+
         this.lblChessTimer = lblChessTimer;
         this.lblChessTimer.setText("TEST");
-        
-        Timer t = new Timer();
-        int delay = 1000;
-        TimerTask clockTask = new TimerTask() {
-            @Override
-            public void run() {
-                Platform.runLater(new ChessTimerThread(lblChessTimer));
-            }
-        };
-        t.scheduleAtFixedRate(clockTask, 0, delay);
 
+        createTimer();
+        
         this.setMinSize(400, 400);
         this.setMaxSize(400, 400);
 
