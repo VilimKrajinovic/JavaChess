@@ -29,6 +29,14 @@
       </MenuBar>
    </top>
    <right>
-      <Label fx:id="lblChessTimer" alignment="CENTER" text="Label" textAlignment="CENTER" BorderPane.alignment="CENTER" />
+      <Pane prefHeight="548.0" prefWidth="113.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label fx:id="lblChessTimer" alignment="CENTER" layoutX="22.0" layoutY="251.0" text="Label" textAlignment="CENTER">
+               <font>
+                  <Font name="Segoe UI Light" size="31.0" />
+               </font>
+            </Label>
+         </children>
+      </Pane>
    </right>
 </BorderPane>

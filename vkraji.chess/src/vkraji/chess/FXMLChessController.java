@@ -59,7 +59,7 @@ public class FXMLChessController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
         board = new ChessBoard(lblChessTimer);
-        board.setGridLinesVisible(true);
+        //board.setGridLinesVisible(true);
         bpMain.setCenter(board);
 
         Timer t = new Timer();
@@ -72,6 +72,10 @@ public class FXMLChessController implements Initializable {
         };
         t.scheduleAtFixedRate(clockTask, 0, delay);
 
+        printDocumentation();
+    }
+
+    private void printDocumentation() {
         try (BufferedWriter bw = new BufferedWriter(
                 new FileWriter("documentation.txt"))) {
 

@@ -97,6 +97,7 @@ public class ChessBoard extends GridPane {
     public ChessBoard(Label lblChessTimer) {
         super();
 
+        this.getStylesheets().add("vkraji/chess/fxmlchess.css");
         this.lblChessTimer = lblChessTimer;
         this.lblChessTimer.setText("30");
 
@@ -137,27 +138,12 @@ public class ChessBoard extends GridPane {
 
             this.processMove(move);
 
-            this.selectedField = null;
+            this.setSelectedField(null);
 
         } else {
             if (fields[x][y].getPiece() != null) {
-                setSelectedField(fields[x][y]);
+                this.setSelectedField(fields[x][y]);
             }
-        }
-    }
-
-    private void resetTimer() {
-        this.timeLeft = Constants.TIME;
-    }
-
-    private void pauseTimer() {
-        this.timerPaused = true;
-    }
-
-    private void resumeTimer() {
-        synchronized (timerLock) {
-            this.timerPaused = false;
-            timerLock.notifyAll();
         }
     }
 
@@ -166,7 +152,14 @@ public class ChessBoard extends GridPane {
     }
 
     public void setSelectedField(Field selectedField) {
+        if (this.selectedField != null) {
+            this.selectedField.getStyleClass().removeAll("chess-field-active");
+        }
         this.selectedField = selectedField;
+
+        if (this.selectedField != null) {
+            this.selectedField.getStyleClass().add("chess-field-active");
+        }
     }
 
     private void processMove(Move move) {
@@ -224,7 +217,7 @@ public class ChessBoard extends GridPane {
         if (move == null) {
             return false;
         }
-        
+
         pauseTimer();
 
         oldField = fields[move.getOldX()][move.getOldY()];
@@ -237,4 +230,20 @@ public class ChessBoard extends GridPane {
         //JUST TO COMPILE; CHANGE LATER
         return true;
     }
+
+    private void resetTimer() {
+        this.timeLeft = Constants.TIME;
+    }
+
+    private void pauseTimer() {
+        this.timerPaused = true;
+    }
+
+    private void resumeTimer() {
+        synchronized (timerLock) {
+            this.timerPaused = false;
+            timerLock.notifyAll();
+        }
+    }
+
 }

@@ -28,8 +28,14 @@ public class Field extends Button implements Serializable {
         this.x = x;
         this.y = y;
         this.piece = null; //add piece later
-        this.setMaxSize(50, 50);
-        this.setMinSize(50, 50);
+        
+
+        
+        this.getStyleClass().add("chess-field");
+        if(color == ChessColor.WHITE)
+            this.getStyleClass().add("chess-color-white");
+        else
+            this.getStyleClass().add("chess-color-black");
     }
 
     public Piece releasePiece() {
