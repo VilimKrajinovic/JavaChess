@@ -5,9 +5,10 @@
  */
 package vkraji.chess.models.pieces;
 
-import vkraji.common.Constants;
 import java.io.Serializable;
+
 import vkraji.chess.models.ChessColor;
+import vkraji.common.Constants;
 
 /**
  *
@@ -15,20 +16,19 @@ import vkraji.chess.models.ChessColor;
  */
 public class Rook extends Piece implements Serializable {
 
-    public Rook(ChessColor color){
+    public Rook(ChessColor color) {
         super(color);
         this.setValue(Constants.VALUE_OF_ROOK);
     }
-    
+
     @Override
     public Movement[] getMovement() {
-        Movement[] movement = {
-            Movement.DOWN,
-            Movement.UP,
-            Movement.LEFT,
-            Movement.RIGHT
-        };
-        return movement;
+
+        return new Movement[] {
+                Movement.DOWN,
+                Movement.UP,
+                Movement.LEFT,
+                Movement.RIGHT };
     }
 
     @Override

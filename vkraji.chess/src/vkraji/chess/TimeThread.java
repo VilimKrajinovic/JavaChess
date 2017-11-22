@@ -6,10 +6,8 @@
 package vkraji.chess;
 
 import java.time.LocalDateTime;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javafx.scene.control.Label;
-import javax.print.attribute.standard.DateTimeAtCompleted;
 
 /**
  *
@@ -31,24 +29,26 @@ public class TimeThread implements Runnable {
     }
 
     private String getTime(LocalDateTime t) {
-        String hours, minutes, seconds;
+        String hours;
+        String minutes;
+        String seconds;
 
         if (t.getHour() < 10) {
             hours = "0" + t.getHour();
         } else {
-            hours = "" + t.getHour();
+            hours = Integer.toString(t.getHour());
         }
 
         if (t.getMinute() < 10) {
             minutes = "0" + t.getMinute();
         } else {
-            minutes = "" + t.getMinute();
+            minutes = Integer.toString(t.getMinute());
         }
 
         if (t.getSecond() < 10) {
             seconds = "0" + t.getSecond();
         } else {
-            seconds = "" + t.getSecond();
+            seconds = Integer.toString(t.getSecond());
         }
 
         return hours + ":" + minutes + ":" + seconds;

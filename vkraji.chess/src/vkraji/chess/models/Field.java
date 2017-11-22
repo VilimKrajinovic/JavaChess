@@ -5,9 +5,8 @@
  */
 package vkraji.chess.models;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
+
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;

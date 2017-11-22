@@ -6,8 +6,7 @@
 package vkraji.chess;
 
 import java.util.Observable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javafx.scene.control.Label;
 import vkraji.common.Constants;
 

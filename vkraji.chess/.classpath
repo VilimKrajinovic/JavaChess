@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="dist/run1100486552/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run1222396801/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run1376338154/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run1426394598/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run1540549467/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run1656862971/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run1819021066/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run1833968317/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run194257465/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run1947731399/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run212040753/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/run74548324/vkraji.chess.jar"/>
+	<classpathentry kind="lib" path="dist/vkraji.chess.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>

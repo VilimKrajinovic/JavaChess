@@ -8,11 +8,11 @@ package vkraji.chess.models;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
+
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import vkraji.chess.ChessTimerThread;
-import vkraji.chess.TimeThread;
+import vkraji.chess.FXMLChessController;
 import vkraji.chess.models.pieces.Bishop;
 import vkraji.chess.models.pieces.King;
 import vkraji.chess.models.pieces.Knight;
@@ -29,15 +29,15 @@ import vkraji.common.Constants;
  */
 public class ChessBoard extends GridPane {
 
-    private Label lblChessTimer;
-    private Object timerLock = new Object();
-    private Thread timerThread;
-    private int timeLeft = Constants.TIME;
-    Timer timer = new Timer();
+    private Label              lblChessTimer;
+    private Thread             timerThread;
+    private Object             timerLock     = new Object();
+    private int                timeLeft      = Constants.TIME;
+    Timer                      timer         = new Timer();
 
-    public Field[][] fields = new Field[8][8];
-    public Field selectedField = null;
-    private boolean timerPaused = false;
+    protected static Field[][] fields        = new Field[8][8];
+    private static Field       selectedField = null;
+    private boolean            timerPaused   = false;
 
     public Field[][] getFields() {
         return fields;
@@ -58,7 +58,8 @@ public class ChessBoard extends GridPane {
                                 Platform.runLater(new Runnable() {
                                     @Override
                                     public void run() {
-                                        lblChessTimer.setText(Integer.toString(timeLeft / 1000));
+                                        lblChessTimer.setText(Integer
+                                                .toString(timeLeft / 1000));
                                         if (timeLeft < 0) {
                                             timer.cancel();
                                         }
@@ -66,7 +67,8 @@ public class ChessBoard extends GridPane {
 
                                 });
                             }
-                        }, Calendar.getInstance().getTime(), Constants.INTERVAL);
+                        }, Calendar.getInstance()
+                                .getTime(), Constants.INTERVAL);
                         timerLock.wait(Constants.INTERVAL);
                         timeLeft -= Constants.INTERVAL;
                     } catch (InterruptedException ex) {
@@ -84,8 +86,8 @@ public class ChessBoard extends GridPane {
 
     public void setFields(Field[][] fields) {
 
-        //when loading from file try to do something?
-        this.fields = fields;
+        // when loading from file try to do something?
+        ChessBoard.fields = fields;
 
         for (int x = 0; x < 8; ++x) {
             for (int y = 0; y < 8; ++y) {
@@ -94,7 +96,7 @@ public class ChessBoard extends GridPane {
         }
     }
 
-    public ChessBoard(Label lblChessTimer) {
+    public ChessBoard(Label lblChessTimer, ChessColor playerColor) {
         super();
 
         this.getStylesheets().add("vkraji/chess/fxmlchess.css");
@@ -112,12 +114,16 @@ public class ChessBoard extends GridPane {
                     fields[x][y] = new Field(ChessColor.BLACK, x, y);
                 }
 
-                //TODO: invert board somehow?
-                this.add(fields[x][y], x, 7 - y);
+                if (playerColor == ChessColor.WHITE) {
+                    this.add(fields[x][y], x, 7 - y);
+                } else {
+                    this.add(fields[x][y], 7 - x, y);
+                }
 
-                final int _x = x;
-                final int _y = y;
-                fields[x][y].setOnAction(e -> onFieldClick(_x, _y)); //lambda expression to use a function call
+                final int xPosition = x;
+                final int yPosition = y;
+                fields[x][y]
+                        .setOnAction(e -> onFieldClick(xPosition, yPosition));
             }
         }
 
@@ -126,17 +132,35 @@ public class ChessBoard extends GridPane {
         this.initializeBoard();
     }
 
+    public boolean sendMove(Move m) {
+        try {
+            FXMLChessController.connection.send(m);
+        } catch (Exception e) {
+            System.out.println("Failed to send move");
+            return false;
+        }
+
+        return true;
+    }
+
     private void onFieldClick(int x, int y) {
         Field clickedField = fields[x][y];
 
-        //if a piece is trying to get moved
-        if (this.selectedField != null
-                && this.selectedField.isOccupied()
-                && clickedField.getPieceColor() != this.selectedField.getPieceColor()) {
+        // if a piece is trying to get moved
+        if (ChessBoard.selectedField != null
+                && ChessBoard.selectedField.isOccupied()
+                && clickedField.getPieceColor() != ChessBoard.selectedField
+                        .getPieceColor()) {
 
-            Move move = new Move(this.selectedField.getX(), this.selectedField.getY(), x, y);
+            Move move = new Move(ChessBoard.selectedField.getX(),
+                    ChessBoard.selectedField.getY(), x, y);
 
-            this.processMove(move);
+            if (this.processMove(move)) {
+                if (this.sendMove(move)) {
+                    pauseTimer();
+                    this.setDisable(true);
+                }
+            }
 
             this.setSelectedField(null);
 
@@ -152,17 +176,18 @@ public class ChessBoard extends GridPane {
     }
 
     public void setSelectedField(Field selectedField) {
-        if (this.selectedField != null) {
-            this.selectedField.getStyleClass().removeAll("chess-field-active");
+        if (ChessBoard.selectedField != null) {
+            ChessBoard.selectedField.getStyleClass()
+                    .removeAll("chess-field-active");
         }
-        this.selectedField = selectedField;
+        ChessBoard.selectedField = selectedField;
 
-        if (this.selectedField != null) {
-            this.selectedField.getStyleClass().add("chess-field-active");
+        if (ChessBoard.selectedField != null) {
+            ChessBoard.selectedField.getStyleClass().add("chess-field-active");
         }
     }
 
-    private void processMove(Move move) {
+    private boolean processMove(Move move) {
         if (checkMove(move)) {
             Field oldField = fields[move.getOldX()][move.getOldY()];
             Field newField = fields[move.getNewX()][move.getNewY()];
@@ -172,38 +197,46 @@ public class ChessBoard extends GridPane {
             resetTimer();
             resumeTimer();
 
+            return true;
         } else {
-            return;
+            return false;
         }
     }
 
     private void initializeBoard() {
-        this.fields[0][0].setPiece(new Rook(ChessColor.WHITE));
-        this.fields[1][0].setPiece(new Knight(ChessColor.WHITE));
-        this.fields[2][0].setPiece(new Bishop(ChessColor.WHITE));
-        this.fields[3][0].setPiece(new Queen(ChessColor.WHITE));
-        this.fields[4][0].setPiece(new King(ChessColor.WHITE));
-        this.fields[5][0].setPiece(new Bishop(ChessColor.WHITE));
-        this.fields[6][0].setPiece(new Knight(ChessColor.WHITE));
-        this.fields[7][0].setPiece(new Rook(ChessColor.WHITE));
+        ChessBoard.fields[0][0].setPiece(new Rook(ChessColor.WHITE));
+        ChessBoard.fields[1][0].setPiece(new Knight(ChessColor.WHITE));
+        ChessBoard.fields[2][0].setPiece(new Bishop(ChessColor.WHITE));
+        ChessBoard.fields[3][0].setPiece(new Queen(ChessColor.WHITE));
+        ChessBoard.fields[4][0].setPiece(new King(ChessColor.WHITE));
+        ChessBoard.fields[5][0].setPiece(new Bishop(ChessColor.WHITE));
+        ChessBoard.fields[6][0].setPiece(new Knight(ChessColor.WHITE));
+        ChessBoard.fields[7][0].setPiece(new Rook(ChessColor.WHITE));
 
-        //pawns
-        for (int i = 0; i < this.fields[0].length; i++) {
-            this.fields[i][1].setPiece(new Pawn(ChessColor.WHITE));
+        // pawns
+        for (int i = 0; i < ChessBoard.fields[0].length; i++) {
+            ChessBoard.fields[i][1].setPiece(new Pawn(ChessColor.WHITE));
         }
 
         // black pieces
-        this.fields[0][7].setPiece(new Rook(ChessColor.BLACK));
-        this.fields[1][7].setPiece(new Knight(ChessColor.BLACK));
-        this.fields[2][7].setPiece(new Bishop(ChessColor.BLACK));
-        this.fields[3][7].setPiece(new Queen(ChessColor.BLACK));
-        this.fields[4][7].setPiece(new King(ChessColor.BLACK));
-        this.fields[5][7].setPiece(new Bishop(ChessColor.BLACK));
-        this.fields[6][7].setPiece(new Knight(ChessColor.BLACK));
-        this.fields[7][7].setPiece(new Rook(ChessColor.BLACK));
+        ChessBoard.fields[0][7].setPiece(new Rook(ChessColor.BLACK));
+        ChessBoard.fields[1][7].setPiece(new Knight(ChessColor.BLACK));
+        ChessBoard.fields[2][7].setPiece(new Bishop(ChessColor.BLACK));
+        ChessBoard.fields[3][7].setPiece(new Queen(ChessColor.BLACK));
+        ChessBoard.fields[4][7].setPiece(new King(ChessColor.BLACK));
+        ChessBoard.fields[5][7].setPiece(new Bishop(ChessColor.BLACK));
+        ChessBoard.fields[6][7].setPiece(new Knight(ChessColor.BLACK));
+        ChessBoard.fields[7][7].setPiece(new Rook(ChessColor.BLACK));
 
-        for (int i = 0; i < this.fields[0].length; i++) {
-            this.fields[i][6].setPiece(new Pawn(ChessColor.BLACK));
+        for (int i = 0; i < ChessBoard.fields[0].length; i++) {
+            ChessBoard.fields[i][6].setPiece(new Pawn(ChessColor.BLACK));
+        }
+    }
+
+    public void processOpponentMove(Move m) {
+        if (processMove(m)) {
+            // unlock board
+            this.setDisable(false);
         }
     }
 
@@ -223,11 +256,11 @@ public class ChessBoard extends GridPane {
         oldField = fields[move.getOldX()][move.getOldY()];
         newField = fields[move.getNewX()][move.getOldY()];
 
-        //TODO
+        // TODO
         piece = oldField.getPiece();
         movement = piece.getMovement();
 
-        //JUST TO COMPILE; CHANGE LATER
+        // JUST TO COMPILE; CHANGE LATER
         return true;
     }
 

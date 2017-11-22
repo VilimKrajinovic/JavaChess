@@ -5,11 +5,13 @@
  */
 package vkraji.chess.models;
 
+import java.io.Serializable;
+
 /**
  *
  * @author amd
  */
-public class Move {
+public class Move implements Serializable{
     private int oldX;
     private int oldY;
     private int newX;

@@ -6,6 +6,7 @@
 package vkraji.chess.models.pieces;
 
 import java.io.Serializable;
+
 import vkraji.chess.models.ChessColor;
 
 /**
@@ -14,31 +15,28 @@ import vkraji.chess.models.ChessColor;
  */
 public class King extends Piece implements Serializable {
 
-    
-    public King(ChessColor color){
+    public King(ChessColor color) {
         super(color);
         this.setValue(-1);
     }
-    
+
     @Override
     public Movement[] getMovement() {
-         Movement[] movement = {
-            Movement.UP,
-            Movement.DOWN,
-            Movement.LEFT,
-            Movement.RIGHT,
-            Movement.UP_LEFT,
-            Movement.UP_RIGHT,
-            Movement.DOWN_LEFT,
-            Movement.DOWN_RIGHT
-        };
-        
-        return movement;
+
+        return new Movement[] {
+                Movement.UP,
+                Movement.DOWN,
+                Movement.LEFT,
+                Movement.RIGHT,
+                Movement.UP_LEFT,
+                Movement.UP_RIGHT,
+                Movement.DOWN_LEFT,
+                Movement.DOWN_RIGHT };
     }
 
     @Override
     public String getName() {
         return "king";
     }
-    
+
 }

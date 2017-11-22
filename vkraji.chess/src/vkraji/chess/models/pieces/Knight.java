@@ -5,10 +5,10 @@
  */
 package vkraji.chess.models.pieces;
 
-import vkraji.common.Constants;
 import java.io.Serializable;
-import java.util.ArrayList;
+
 import vkraji.chess.models.ChessColor;
+import vkraji.common.Constants;
 
 /**
  *
@@ -16,17 +16,16 @@ import vkraji.chess.models.ChessColor;
  */
 public class Knight extends Piece implements Serializable {
 
-    
-    public Knight(ChessColor color){
+    public Knight(ChessColor color) {
         super(color);
         this.setValue(Constants.VALUE_OF_KNIGHT);
-        
+
     }
-    
+
     @Override
     public Movement[] getMovement() {
-        Movement[] movement =
-            {
+
+        return new Movement[] {
                 Movement.KNIGHT_LEFT_UP,
                 Movement.KNIGHT_UP_LEFT,
                 Movement.KNIGHT_UP_RIGHT,
@@ -34,16 +33,12 @@ public class Knight extends Piece implements Serializable {
                 Movement.KNIGHT_RIGHT_DOWN,
                 Movement.KNIGHT_DOWN_RIGHT,
                 Movement.KNIGHT_DOWN_LEFT,
-                Movement.KNIGHT_LEFT_DOWN
-            };
-        
-        return movement;
+                Movement.KNIGHT_LEFT_DOWN };
     }
 
-    
     @Override
     public String getName() {
         return "knight";
     }
-    
+
 }

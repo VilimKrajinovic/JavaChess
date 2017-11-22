@@ -5,11 +5,8 @@
  */
 package vkraji.chess.models.pieces;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
-import javafx.scene.image.Image;
-import javax.swing.ImageIcon;
+
 import vkraji.chess.models.ChessColor;
 
 /**
@@ -18,12 +15,17 @@ import vkraji.chess.models.ChessColor;
  */
 public abstract class Piece implements Serializable {
 
-    private boolean hasMoved; //pawn movement
-    private boolean usesSingleMove;
-    //transient private Image image;        doesnt serialize, trying to save it with string filepath
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -1187447247680053942L;
+    private boolean    hasMoved;      // pawn movement
+    private boolean    usesSingleMove;
+    // transient private Image image; doesnt serialize, trying to save it with
+    // string filepath
     private ChessColor color;
-    private int value;
-    private String filePath;
+    private int        value;
+    private String     filePath;
 
     public String getFilePath() {
         return filePath;
@@ -69,14 +71,6 @@ public abstract class Piece implements Serializable {
         this.hasMoved = hasMoved;
     }
 
-//    public Image getImage() {
-//        return image;
-//    }
-//
-//    public void setImage(Image image) {
-//        this.image = image;
-//    }
-
     public ChessColor getColor() {
         return color;
     }
@@ -92,12 +86,4 @@ public abstract class Piece implements Serializable {
     public void setUsesSingleMove(boolean usesSingleMove) {
         this.usesSingleMove = usesSingleMove;
     }
-
-    //private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException{
-    //    in.defaultReadObject();
-    //    
-    //    String filename= getColorName() + "-" + this.getName()+".png";
-    //    String path = "vkraji/chess/assets/";
-    //    this.image = new Image(path+filename);
-    //}
 }

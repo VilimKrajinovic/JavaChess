@@ -6,9 +6,7 @@
 package vkraji.chess;
 
 import java.io.BufferedWriter;
-import java.io.EOFException;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,18 +18,26 @@ import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import vkraji.chess.models.ChessBoard;
+import vkraji.chess.models.ChessColor;
 import vkraji.chess.models.Field;
+import vkraji.chess.models.Move;
+import vkraji.networking.*;
 import vkraji.common.Constants;
 
 /**
@@ -42,15 +48,17 @@ import vkraji.common.Constants;
 public class FXMLChessController implements Initializable {
 
     @FXML
-    private BorderPane bpMain;
+    private BorderPane                   bpMain;
 
     @FXML
-    private Label lblTime;
-    
-    @FXML
-    private Label lblChessTimer;        
+    private Label                        lblTime;
 
-    ChessBoard board;
+    @FXML
+    private Label                        lblChessTimer;
+
+    public static ChessNetworkConnection connection;
+    ChessBoard                           board;
+    ChessColor                           playerColor;
 
     /**
      * Initializes the controller class.
@@ -58,9 +66,24 @@ public class FXMLChessController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
-        board = new ChessBoard(lblChessTimer);
-        //board.setGridLinesVisible(true);
+
+        choosePlayerColor();
+        board = new ChessBoard(lblChessTimer, playerColor);
         bpMain.setCenter(board);
+
+        if (playerColor == ChessColor.WHITE) {
+            this.connection = createServer();
+        } else {
+            this.connection = createClient();
+            board.setDisable(true);
+        }
+
+        try {
+            this.connection.startConnection();
+        } catch (Exception e) {
+            System.out.println("Error: Failed to start connection");
+            System.exit(1);
+        }
 
         Timer t = new Timer();
         int delay = 1000;
@@ -72,28 +95,52 @@ public class FXMLChessController implements Initializable {
         };
         t.scheduleAtFixedRate(clockTask, 0, delay);
 
-        printDocumentation();
+        DocumentationWriter.printDocumentation();
     }
 
-    private void printDocumentation() {
-        try (BufferedWriter bw = new BufferedWriter(
-                new FileWriter("documentation.txt"))) {
+    public void choosePlayerColor() {
+        Alert newGameAlert = new Alert(AlertType.CONFIRMATION);
+        newGameAlert.setTitle("Start new game");
+        newGameAlert.setHeaderText(null);
+        newGameAlert.setContentText("Pick team color");
 
-            bw.write(printClassDetails("vkraji.chess.models.ChessBoard"));
-            bw.write(printClassDetails("vkraji.chess.models.Field"));
-            bw.write(printClassDetails("vkraji.chess.models.Move"));
-            bw.write(printClassDetails("vkraji.chess.models.pieces.Piece"));
-            bw.write(printClassDetails("vkraji.chess.models.pieces.Bishop"));
-            bw.write(printClassDetails("vkraji.chess.models.pieces.King"));
-            bw.write(printClassDetails("vkraji.chess.models.pieces.Knight"));
-            bw.write(printClassDetails("vkraji.chess.models.pieces.Movement"));
-            bw.write(printClassDetails("vkraji.chess.models.pieces.Pawn"));
-            bw.write(printClassDetails("vkraji.chess.models.pieces.Queen"));
-            bw.write(printClassDetails("vkraji.chess.models.pieces.Rook"));
-            
-        } catch (IOException ex) {
-            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
+        ButtonType buttonTypeWhite = new ButtonType("White (Server)");
+        ButtonType buttonTypeBlack = new ButtonType("Black (Client)");
+
+        newGameAlert.getButtonTypes().setAll(buttonTypeWhite, buttonTypeBlack);
+        Optional<ButtonType> result = newGameAlert.showAndWait();
+
+        if (result.get() == buttonTypeWhite) {
+            this.playerColor = ChessColor.WHITE;
+        } else if (result.get() == buttonTypeBlack) {
+            this.playerColor = ChessColor.BLACK;
         }
+    }
+
+    private Server createServer() {
+        return new Server(Constants.PORT_NUMBER, data -> {
+            Platform.runLater(() -> {
+                if (data instanceof Move) {
+                    board.processOpponentMove((Move) data);
+                } else // if (data instanceof String)
+                {
+                    System.out.println(data.toString() + "\n");
+                }
+            });
+        });
+    }
+
+    private Client createClient() {
+        return new Client("localhost", Constants.PORT_NUMBER, data -> {
+            Platform.runLater(() -> {
+                if (data instanceof Move) {
+                    board.processOpponentMove((Move) data);
+                } else // if (data instanceof String)
+                {
+                    System.out.println(data.toString() + "\n");
+                }
+            });
+        });
     }
 
     public void onLoad() {
@@ -107,14 +154,9 @@ public class FXMLChessController implements Initializable {
                 board.setFields((Field[][]) readObject);
             }
 
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (EOFException ex) {
-            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException | IOException ex) {
+            Logger.getLogger(FXMLChessController.class.getName())
+                    .log(Level.SEVERE, null, ex);
         }
     }
 
@@ -123,140 +165,168 @@ public class FXMLChessController implements Initializable {
                 new FileOutputStream(Constants.FILE_NAME))) {
             oos.writeObject(board.getFields());
 
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FXMLChessController.class.getName())
+                    .log(Level.SEVERE, null, ex);
         }
     }
 
-    private String printClassDetails(String name) {
+    public static class DocumentationWriter {
+        public static void printDocumentation() {
+            try (BufferedWriter bw = new BufferedWriter(
+                    new FileWriter("documentation.txt"))) {
 
-        try {
-            StringBuilder sb = new StringBuilder();
+                bw.write(printClassDetails("vkraji.chess.models.ChessBoard"));
+                bw.write(printClassDetails("vkraji.chess.models.Field"));
+                bw.write(printClassDetails("vkraji.chess.models.Move"));
+                bw.write(printClassDetails("vkraji.chess.models.pieces.Piece"));
+                bw.write(printClassDetails("vkraji.chess.models.pieces.Bishop"));
+                bw.write(printClassDetails("vkraji.chess.models.pieces.King"));
+                bw.write(printClassDetails("vkraji.chess.models.pieces.Knight"));
+                bw.write(printClassDetails("vkraji.chess.models.pieces.Movement"));
+                bw.write(printClassDetails("vkraji.chess.models.pieces.Pawn"));
+                bw.write(printClassDetails("vkraji.chess.models.pieces.Queen"));
+                bw.write(printClassDetails("vkraji.chess.models.pieces.Rook"));
 
-            sb.append("//////////////////////////////////////////////////////////////////////////////////////////////////////"+System.lineSeparator());
-            Class<?> tmp = Class.forName(name);
-            sb.append("Name: " + tmp.getName()+ System.lineSeparator());
-
-            sb.append("Hierarchy:");
-            for (String s : getHierarchy(tmp)) {
-                sb.append(s + "; ");
+            } catch (IOException ex) {
+                Logger.getLogger(FXMLChessController.class.getName())
+                        .log(Level.SEVERE, null, ex);
             }
-            sb.append(System.lineSeparator());
+        }
 
-            sb.append("Methods:");
-            for (String s : getMethods(tmp)) {
-                sb.append(s + "; ");
-            }
-            sb.append(System.lineSeparator());
+        private static String printClassDetails(String name) {
 
-            java.lang.reflect.Field[] fields = tmp.getDeclaredFields();
-            sb.append("List of private fields: ");
-            for (java.lang.reflect.Field field : fields) {
-                if (Modifier.isPrivate(field.getModifiers())) {
-                    sb.append(System.lineSeparator() + field.getName());
+            try {
+                StringBuilder sb = new StringBuilder();
+
+                sb.append("//////////////////////////////////////////////////////////////////////////////////////////////////////"
+                        + System.lineSeparator());
+                Class<?> tmp = Class.forName(name);
+                sb.append("Name: " + tmp.getName() + System.lineSeparator());
+
+                sb.append("Hierarchy:");
+                for (String s : getHierarchy(tmp)) {
+                    sb.append(s + "; ");
                 }
-            }
+                sb.append(System.lineSeparator());
 
-            sb.append("List of public methods:");
-            Method[] methods = tmp.getMethods();
+                sb.append("Methods:");
+                for (String s : getMethods(tmp)) {
+                    sb.append(s + "; ");
+                }
+                sb.append(System.lineSeparator());
 
-            for (Method method : methods) {
-                if (Modifier.isPublic(method.getModifiers())) {
-                    sb.append(method.getName());
-                    if (method.getParameters().length > 0) {
-                        sb.append("\tMethod takes:"+System.lineSeparator());
-                        Parameter[] parameters = method.getParameters();
-                        for (Parameter parameter : parameters) {
-                            sb.append("\t\t" + parameter.getType() + " " + parameter.getName());
-                        }
-                    } else {
-                        sb.append("\tMethod doesnt take any paremeters."+System.lineSeparator());
+                java.lang.reflect.Field[] fields = tmp.getDeclaredFields();
+                sb.append("List of private fields: ");
+                for (java.lang.reflect.Field field : fields) {
+                    if (Modifier.isPrivate(field.getModifiers())) {
+                        sb.append(System.lineSeparator() + field.getName());
                     }
-
-                    sb.append("\tMethod returns:"+System.lineSeparator());
-                    sb.append("\t\t" + method.getReturnType());
-                    sb.append(System.lineSeparator());
                 }
+
+                sb.append("List of public methods:");
+                Method[] methods = tmp.getMethods();
+
+                for (Method method : methods) {
+                    if (Modifier.isPublic(method.getModifiers())) {
+                        sb.append(method.getName());
+                        if (method.getParameters().length > 0) {
+                            sb.append("\tMethod takes:"
+                                    + System.lineSeparator());
+                            Parameter[] parameters = method.getParameters();
+                            for (Parameter parameter : parameters) {
+                                sb.append("\t\t" + parameter.getType() + " "
+                                        + parameter.getName());
+                            }
+                        } else {
+                            sb.append("\tMethod doesnt take any paremeters."
+                                    + System.lineSeparator());
+                        }
+
+                        sb.append("\tMethod returns:" + System.lineSeparator());
+                        sb.append("\t\t" + method.getReturnType());
+                        sb.append(System.lineSeparator());
+                    }
+                }
+
+                sb.append("Fields:");
+                for (String s : getFields(tmp)) {
+                    sb.append(s + "; ");
+                }
+                sb.append(System.lineSeparator());
+                return sb.toString();
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(FXMLChessController.class.getName())
+                        .log(Level.SEVERE, null, ex);
+            }
+            return null;
+        }
+
+        private static Iterable<String> getModifiers(Class<?> tmp) {
+            List<String> modifiersList = new ArrayList<>();
+            int mod = tmp.getModifiers();
+
+            if (Modifier.isPrivate(mod)) {
+                modifiersList.add(Constants.MOD_PRIVATE);
+            }
+            if (Modifier.isPublic(mod)) {
+                modifiersList.add(Constants.MOD_PUBLIC);
+            }
+            if (Modifier.isProtected(mod)) {
+                modifiersList.add(Constants.MOD_PROTECTED);
+            }
+            if (Modifier.isStatic(mod)) {
+                modifiersList.add(Constants.MOD_STATIC);
+            }
+            if (Modifier.isAbstract(mod)) {
+                modifiersList.add(Constants.MOD_ABSTRACT);
+            }
+            if (Modifier.isFinal(mod)) {
+                modifiersList.add(Constants.MOD_FINAL);
+            }
+            if (Modifier.isInterface(mod)) {
+                modifiersList.add(Constants.MOD_INTERFACE);
             }
 
-            sb.append("Fields:");
-            for (String s : getFields(tmp)) {
-                sb.append(s + "; ");
+            return modifiersList;
+        }
+
+        private static Iterable<String> getMethods(Class<?> tmp) {
+            List<String> methodList = new ArrayList<>();
+
+            String fullMethod = "";
+            for (Method m : tmp.getMethods()) {
+                for (String s : getModifiers(m.getClass())) {
+                    fullMethod.concat(s + " ");
+                }
+                methodList.add(fullMethod + m.getName());
+                fullMethod = "";
             }
-            sb.append(System.lineSeparator());
-            return sb.toString();
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
-    }
 
-    private Iterable<String> getModifiers(Class<?> tmp) {
-        List<String> modifiersList = new ArrayList<>();
-        int mod = tmp.getModifiers();
-
-        if (Modifier.isPrivate(mod)) {
-            modifiersList.add(Constants.MOD_PRIVATE);
-        }
-        if (Modifier.isPublic(mod)) {
-            modifiersList.add(Constants.MOD_PUBLIC);
-        }
-        if (Modifier.isProtected(mod)) {
-            modifiersList.add(Constants.MOD_PROTECTED);
-        }
-        if (Modifier.isStatic(mod)) {
-            modifiersList.add(Constants.MOD_STATIC);
-        }
-        if (Modifier.isAbstract(mod)) {
-            modifiersList.add(Constants.MOD_ABSTRACT);
-        }
-        if (Modifier.isFinal(mod)) {
-            modifiersList.add(Constants.MOD_FINAL);
-        }
-        if (Modifier.isInterface(mod)) {
-            modifiersList.add(Constants.MOD_INTERFACE);
+            return methodList;
         }
 
-        return modifiersList;
-    }
+        private static Iterable<String> getFields(Class<?> tmp) {
+            List<String> fieldList = new ArrayList<>();
 
-    private Iterable<String> getMethods(Class<?> tmp) {
-        List<String> methodList = new ArrayList<>();
-
-        String fullMethod = "";
-        for (Method m : tmp.getMethods()) {
-            for (String s : getModifiers(m.getClass())) {
-                fullMethod.concat(s + " ");
+            for (java.lang.reflect.Field f : tmp.getDeclaredFields()) {
+                fieldList.add(f.getType() + ": " + f.getName());
             }
-            methodList.add(fullMethod + m.getName());
-            fullMethod = "";
+
+            return fieldList;
         }
 
-        return methodList;
-    }
+        private static Iterable<String> getHierarchy(Class<?> tmp) {
+            List<String> classList = new ArrayList<>();
 
-    private Iterable<String> getFields(Class<?> tmp) {
-        List<String> fieldList = new ArrayList<>();
+            Class<?> parentClass = tmp.getSuperclass();
+            while (parentClass != null) {
+                classList.add(parentClass.getName());
+                parentClass = parentClass.getSuperclass();
+            }
 
-        for (java.lang.reflect.Field f : tmp.getDeclaredFields()) {
-            fieldList.add(f.getType() + ": " + f.getName());
+            return classList;
         }
-
-        return fieldList;
-    }
-
-    private Iterable<String> getHierarchy(Class<?> tmp) {
-        List<String> classList = new ArrayList<>();
-
-        Class<?> parentClass = tmp.getSuperclass();
-        while (parentClass != null) {
-            classList.add(parentClass.getName());
-            parentClass = parentClass.getSuperclass();
-        }
-
-        return classList;
     }
 
 }
