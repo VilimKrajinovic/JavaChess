@@ -17,14 +17,12 @@ import vkraji.common.Constants;
 public class ChessTimerThread extends Observable implements Runnable {
 
     private Label lblChessTimer;
-    private int timeLeft;
+    private int   timeLeft;
 
     public ChessTimerThread(Label lblChessTimer) {
         this.lblChessTimer = lblChessTimer;
         this.timeLeft = Constants.TIME;
     }
-
-   
 
     @Override
     public void run() {

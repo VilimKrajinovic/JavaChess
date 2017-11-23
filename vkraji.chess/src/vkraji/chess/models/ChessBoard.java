@@ -240,6 +240,7 @@ public class ChessBoard extends GridPane {
         }
     }
 
+    @SuppressWarnings("unused")
     private boolean checkMove(Move move) {
 
         Field oldField;
