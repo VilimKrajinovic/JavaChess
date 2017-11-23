@@ -5,8 +5,13 @@
  */
 package vkraji.common;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Hashtable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -16,8 +21,7 @@ import javax.naming.NamingException;
  * @author amd
  */
 public class Constants {
-
-    public static final int    TIME            = 30 * 1000;
+    
     public static final int    INTERVAL        = 1000;
 
     public static final int    VALUE_OF_PAWN   = 1;
@@ -35,11 +39,11 @@ public class Constants {
     public static final String MOD_INTERFACE   = "Interface";
 
     public static final String FILE_NAME       = "board.dat";
-    public static final String CONFIG_PATH     = "../";
+    public static final String CONFIG_PATH     = "config";
     public static final String CONFIG_NAME     = "config.ini";
     public static final int    PORT_NUMBER     = 1234;
 
-    private static int loadConfig(String fileName) throws NamingException{
+    public static int loadConfig(String fileName) throws NamingException{
         
         Hashtable env = new Hashtable();
         env.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.fscontext.RefFSContextFactory");
@@ -49,6 +53,12 @@ public class Constants {
         Object in = context.lookup(fileName);
         File file = (File) in;
         
-        return 1;
+        try(BufferedReader br = new BufferedReader(new FileReader(file))){
+            return Integer.parseInt(br.readLine());
+        } catch (IOException ex) {
+            Logger.getLogger(Constants.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return -1;
     }
 }

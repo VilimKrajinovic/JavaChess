@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.function.Consumer;
 
@@ -78,8 +79,14 @@ public abstract class ChessNetworkConnection {
                 socket.setTcpNoDelay(true);
 
                 while (true) {
-                    Serializable data = (Serializable) in.readObject();
-                    onRecieveCallBack.accept(data);
+                    try {
+                        Serializable data = (Serializable) in.readObject();
+                        onRecieveCallBack.accept(data);
+                        
+                    } catch (SocketException e) {
+                        System.out.println("Server closed...");
+                        System.exit(1);
+                    }
                 }
 
             } catch (ConnectException e) {

@@ -72,14 +72,14 @@ public class FXMLChessController implements Initializable {
         bpMain.setCenter(board);
 
         if (playerColor == ChessColor.WHITE) {
-            this.connection = createServer();
+            FXMLChessController.connection = createServer();
         } else {
-            this.connection = createClient();
+            FXMLChessController.connection = createClient();
             board.setDisable(true);
         }
 
         try {
-            this.connection.startConnection();
+            FXMLChessController.connection.startConnection();
         } catch (Exception e) {
             System.out.println("Error: Failed to start connection");
             System.exit(1);
@@ -103,6 +103,7 @@ public class FXMLChessController implements Initializable {
         newGameAlert.setTitle("Start new game");
         newGameAlert.setHeaderText(null);
         newGameAlert.setContentText("Pick team color");
+        
 
         ButtonType buttonTypeWhite = new ButtonType("White (Server)");
         ButtonType buttonTypeBlack = new ButtonType("Black (Client)");
@@ -199,20 +200,19 @@ public class FXMLChessController implements Initializable {
             try {
                 StringBuilder sb = new StringBuilder();
 
-                sb.append("//////////////////////////////////////////////////////////////////////////////////////////////////////"
-                        + System.lineSeparator());
+                sb.append("//////////////////////////////////////////////////////////////////////////////////////////////////////").append(System.lineSeparator());
                 Class<?> tmp = Class.forName(name);
-                sb.append("Name: " + tmp.getName() + System.lineSeparator());
+                sb.append("Name: ").append(tmp.getName()).append(System.lineSeparator());
 
                 sb.append("Hierarchy:");
                 for (String s : getHierarchy(tmp)) {
-                    sb.append(s + "; ");
+                    sb.append(s).append("; ");
                 }
                 sb.append(System.lineSeparator());
 
                 sb.append("Methods:");
                 for (String s : getMethods(tmp)) {
-                    sb.append(s + "; ");
+                    sb.append(s).append("; ");
                 }
                 sb.append(System.lineSeparator());
 
@@ -220,7 +220,7 @@ public class FXMLChessController implements Initializable {
                 sb.append("List of private fields: ");
                 for (java.lang.reflect.Field field : fields) {
                     if (Modifier.isPrivate(field.getModifiers())) {
-                        sb.append(System.lineSeparator() + field.getName());
+                        sb.append(System.lineSeparator()).append(field.getName());
                     }
                 }
 
@@ -231,27 +231,24 @@ public class FXMLChessController implements Initializable {
                     if (Modifier.isPublic(method.getModifiers())) {
                         sb.append(method.getName());
                         if (method.getParameters().length > 0) {
-                            sb.append("\tMethod takes:"
-                                    + System.lineSeparator());
+                            sb.append("\tMethod takes:").append(System.lineSeparator());
                             Parameter[] parameters = method.getParameters();
                             for (Parameter parameter : parameters) {
-                                sb.append("\t\t" + parameter.getType() + " "
-                                        + parameter.getName());
+                                sb.append("\t\t").append(parameter.getType()).append(" ").append(parameter.getName());
                             }
                         } else {
-                            sb.append("\tMethod doesnt take any paremeters."
-                                    + System.lineSeparator());
+                            sb.append("\tMethod doesnt take any paremeters.").append(System.lineSeparator());
                         }
 
-                        sb.append("\tMethod returns:" + System.lineSeparator());
-                        sb.append("\t\t" + method.getReturnType());
+                        sb.append("\tMethod returns:").append(System.lineSeparator());
+                        sb.append("\t\t").append(method.getReturnType());
                         sb.append(System.lineSeparator());
                     }
                 }
 
                 sb.append("Fields:");
                 for (String s : getFields(tmp)) {
-                    sb.append(s + "; ");
+                    sb.append(s).append("; ");
                 }
                 sb.append(System.lineSeparator());
                 return sb.toString();
@@ -297,7 +294,7 @@ public class FXMLChessController implements Initializable {
             String fullMethod = "";
             for (Method m : tmp.getMethods()) {
                 for (String s : getModifiers(m.getClass())) {
-                    fullMethod.concat(s + " ");
+                    fullMethod.concat(" " + s);
                 }
                 methodList.add(fullMethod + m.getName());
                 fullMethod = "";

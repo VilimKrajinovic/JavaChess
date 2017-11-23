@@ -8,10 +8,13 @@ package vkraji.chess.models;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javax.naming.NamingException;
 import vkraji.chess.FXMLChessController;
 import vkraji.chess.models.pieces.Bishop;
 import vkraji.chess.models.pieces.King;
@@ -29,11 +32,11 @@ import vkraji.common.Constants;
  */
 public class ChessBoard extends GridPane {
 
-    private Label              lblChessTimer;
-    private Thread             timerThread;
-    private Object             timerLock     = new Object();
-    private int                timeLeft      = Constants.TIME;
-    Timer                      timer         = new Timer();
+    private         Label              lblChessTimer;
+    private         Thread             timerThread;
+    private final   Object             timerLock     = new Object();
+    private int                        timeLeft;
+    Timer                              timer         = new Timer();
 
     protected static Field[][] fields        = new Field[8][8];
     private static Field       selectedField = null;
@@ -102,6 +105,14 @@ public class ChessBoard extends GridPane {
         this.getStylesheets().add("vkraji/chess/fxmlchess.css");
         this.lblChessTimer = lblChessTimer;
         this.lblChessTimer.setText("30");
+        
+        try {
+            int tmp = Constants.loadConfig(Constants.CONFIG_NAME);
+            this.lblChessTimer.setText(Integer.toString(tmp/1000));
+            this.timeLeft = Constants.loadConfig(Constants.CONFIG_NAME);
+        } catch (NamingException ex) {
+            Logger.getLogger(ChessBoard.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         this.setMinSize(400, 400);
         this.setMaxSize(400, 400);
@@ -266,7 +277,11 @@ public class ChessBoard extends GridPane {
     }
 
     private void resetTimer() {
-        this.timeLeft = Constants.TIME;
+        try {
+            this.timeLeft = Constants.loadConfig(Constants.CONFIG_NAME);
+        } catch (NamingException ex) {
+            Logger.getLogger(ChessBoard.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void pauseTimer() {

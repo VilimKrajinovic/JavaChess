@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane fx:id="bpMain" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="vkraji.chess.FXMLChessController">
+   <bottom>
+      <Label fx:id="lblTime" alignment="TOP_LEFT" text="Label" BorderPane.alignment="CENTER">
+         <font>
+            <Font name="Segoe UI Light" size="18.0" />
+         </font>
+      </Label>
+   </bottom>
+   <top>
+      <MenuBar fx:id="menuBar" BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem fx:id="btnSave" mnemonicParsing="false" onAction="#onSave" text="Save" />
+                  <MenuItem fx:id="btnLoad" mnemonicParsing="false" onAction="#onLoad" text="Load" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+   <right>
+      <Pane prefHeight="548.0" prefWidth="113.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label fx:id="lblChessTimer" alignment="CENTER" layoutX="22.0" layoutY="251.0" text="Label" textAlignment="CENTER">
+               <font>
+                  <Font name="Segoe UI Light" size="31.0" />
+               </font>
+            </Label>
+         </children>
+      </Pane>
+   </right>
+</BorderPane>
