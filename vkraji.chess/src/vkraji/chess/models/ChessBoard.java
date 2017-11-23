@@ -103,6 +103,7 @@ public class ChessBoard extends GridPane {
         
         try {
             int tmp = Constants.loadConfig(Constants.CONFIG_NAME);
+            
             this.lblChessTimer.setText(Integer.toString(tmp/1000));
             this.timeLeft = Constants.loadConfig(Constants.CONFIG_NAME);
         } catch (NamingException ex) {
