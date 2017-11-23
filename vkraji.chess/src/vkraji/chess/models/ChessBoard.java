@@ -58,16 +58,12 @@ public class ChessBoard extends GridPane {
                         timer.scheduleAtFixedRate(new TimerTask() {
                             @Override
                             public void run() {
-                                Platform.runLater(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        lblChessTimer.setText(Integer
-                                                .toString(timeLeft / 1000));
-                                        if (timeLeft < 0) {
-                                            timer.cancel();
-                                        }
+                                Platform.runLater(() -> {
+                                    lblChessTimer.setText(Integer
+                                            .toString(timeLeft / 1000));
+                                    if (timeLeft < 0) {
+                                        timer.cancel();
                                     }
-
                                 });
                             }
                         }, Calendar.getInstance()
@@ -104,7 +100,6 @@ public class ChessBoard extends GridPane {
 
         this.getStylesheets().add("vkraji/chess/fxmlchess.css");
         this.lblChessTimer = lblChessTimer;
-        this.lblChessTimer.setText("30");
         
         try {
             int tmp = Constants.loadConfig(Constants.CONFIG_NAME);
