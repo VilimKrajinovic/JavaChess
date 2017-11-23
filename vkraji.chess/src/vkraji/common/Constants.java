@@ -5,6 +5,12 @@
  */
 package vkraji.common;
 
+import java.io.File;
+import java.util.Hashtable;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
 /**
  *
  * @author amd
@@ -29,7 +35,20 @@ public class Constants {
     public static final String MOD_INTERFACE   = "Interface";
 
     public static final String FILE_NAME       = "board.dat";
-
+    public static final String CONFIG_PATH     = "../";
+    public static final String CONFIG_NAME     = "config.ini";
     public static final int    PORT_NUMBER     = 1234;
 
+    private static int loadConfig(String fileName) throws NamingException{
+        
+        Hashtable env = new Hashtable();
+        env.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.fscontext.RefFSContextFactory");
+        env.put(Context.PROVIDER_URL, "file:" + CONFIG_PATH);
+        
+        Context context = new InitialContext(env);
+        Object in = context.lookup(fileName);
+        File file = (File) in;
+        
+        return 1;
+    }
 }
