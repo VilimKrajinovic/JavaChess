@@ -1,5 +1,4 @@
-# JavaChess
-Java Multiplayer Chess
+# Java Multiplayer Chess
 
 Work in progress
 
