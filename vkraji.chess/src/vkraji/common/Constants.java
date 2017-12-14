@@ -45,6 +45,7 @@ public class Constants {
     
     public static final String SERVER_DEFAULT_NAME = "Server";
     public static final String CLIENT_DEFAULT_NAME = "Client";
+    public static final int    RMI_PORT_NUMBER     = 1235;
 
     public static int loadConfig(String fileName) throws NamingException{
         

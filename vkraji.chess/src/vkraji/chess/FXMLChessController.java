@@ -79,9 +79,9 @@ public class FXMLChessController implements Initializable {
     public static ChessNetworkConnection connection;
     ChessBoard board;
     ChessColor playerColor;
-    ChatInterface server;
-    ChatInterface client;
-    Registry reg;
+
+    ChatImplementation server;
+    ArrayList<String> messages = new ArrayList<>();
 
     /**
      * Initializes the controller class.
@@ -96,10 +96,24 @@ public class FXMLChessController implements Initializable {
 
         if (playerColor == ChessColor.WHITE) {
             FXMLChessController.connection = createServer();
-            initServerChat();
+
+            try {
+                this.server = new ChatImplementation(Constants.SERVER_DEFAULT_NAME);
+                Registry reg = LocateRegistry.createRegistry(Constants.RMI_PORT_NUMBER);
+
+                ChatInterface stub = (ChatInterface) UnicastRemoteObject.exportObject(server, 0);
+                reg.rebind(Constants.SERVER_DEFAULT_NAME, stub);
+                
+                txtChatArea.appendText("Server ready, waiting for client...\n");
+            } catch (RemoteException ex) {
+                txtChatArea.appendText(ex.getMessage() + "\n");
+            }
+
+            //initServerChat();
         } else {
             FXMLChessController.connection = createClient();
-            initClientChat();
+
+            //initClientChat();
             board.setDisable(true);
         }
 
@@ -196,27 +210,30 @@ public class FXMLChessController implements Initializable {
         }
     }
 
-    public void onOpenChatClick(){
-        
+    public void onOpenChatClick() {
+
     }
-    
-    public void sendMessage() {
+
+    public void btnSendMessage() {
         try {
-            //TODO
-            System.out.println("Trying to send");
             if (this.playerColor == ChessColor.WHITE) {
-                this.reg = LocateRegistry.getRegistry();
-                ChatInterface tmp = (ChatInterface) this.reg.lookup("client");
-                if(tmp != null){
-                    txtChatArea.appendText(tmp.sendMessage(txtMessage.getText()));
-                }
+                txtChatArea.appendText("White: " + txtMessage.getText()+"\n");
+                //spremiti u neki array za crnog i dodat id
+                server.sendMessageOffline("White: " + txtMessage.getText()+"\n");
+                messages.add(txtMessage.getText());
             }
-            
-            if(this.playerColor == ChessColor.BLACK){
-                this.reg = LocateRegistry.getRegistry();
-                ChatInterface stub = (ChatInterface) this.reg.lookup("server");
-                if(stub != null){
-                    txtChatArea.appendText(stub.sendMessage(txtMessage.getText()));
+
+            if (this.playerColor == ChessColor.BLACK) {
+                Registry reg = LocateRegistry.getRegistry(Constants.RMI_PORT_NUMBER);
+                ChatInterface stub = (ChatInterface) reg.lookup(Constants.SERVER_DEFAULT_NAME);
+                if (stub != null) {
+                    txtChatArea.setText("");
+                    
+                    ArrayList<String> tmp = stub.getMessages();
+                    for (String message : tmp) {
+                        txtChatArea.appendText(message);
+                    }   
+                    txtChatArea.appendText(stub.sendMessage("Black: " + txtMessage.getText()+"\n"));
                 }
             }
 
@@ -224,36 +241,6 @@ public class FXMLChessController implements Initializable {
             Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NotBoundException ex) {
             System.out.println("Still no client");
-        }
-    }
-
-    private void initServerChat() {
-        try {
-
-            this.server = new ChatImplementation(Constants.SERVER_DEFAULT_NAME);
-            this.reg = LocateRegistry.createRegistry(1235);
-
-            ChatInterface stub = (ChatInterface) UnicastRemoteObject.exportObject(server, 0);
-            this.reg.rebind(Constants.SERVER_DEFAULT_NAME, stub);
-            txtChatArea.appendText("Server ready, waiting for client...\n");
-        } catch (RemoteException ex) {
-            txtChatArea.appendText(ex.getMessage() + "\n");
-        }
-    }
-
-    private void initClientChat() {
-        try {
-
-            this.client = new ChatImplementation(Constants.CLIENT_DEFAULT_NAME);
-            this.reg = LocateRegistry.getRegistry();
-            this.client = (ChatInterface) this.reg.lookup("server");
-
-            txtChatArea.appendText("Client ready...\n");
-
-        } catch (RemoteException ex) {
-            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NotBoundException ex) {
-            Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -411,5 +398,4 @@ public class FXMLChessController implements Initializable {
             return classList;
         }
     }
-
 }

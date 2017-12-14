@@ -6,6 +6,7 @@
 package vkraji.rmi;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 
 /**
  *
@@ -14,23 +15,33 @@ import java.rmi.RemoteException;
 public class ChatImplementation implements ChatInterface {
 
     private String name;
+    private ArrayList<String> messages;
 
     public ChatImplementation(String name) {
         this.name = name;
+        this.messages = new ArrayList<>();
     }
-    
-    
-    
+
     @Override
     public String getName() throws RemoteException {
         return this.name;
+    }
+    
+    public void sendMessageOffline(String message){
+        messages.add(message);
     }
 
     @Override
     public String sendMessage(String message) throws RemoteException {
         String tmp;
-        tmp = this.name + ": " + message+"\n";
+        tmp = message + "\n";
+        this.messages.add(tmp);
         return tmp;
     }
-    
+
+    @Override
+    public ArrayList<String> getMessages() throws RemoteException {
+        return messages;
+    }
+
 }
