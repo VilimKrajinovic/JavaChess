@@ -29,7 +29,7 @@ public class ChatImplementation implements ChatInterface {
     @Override
     public String sendMessage(String message) throws RemoteException {
         String tmp;
-        tmp = this.name + ": " + message;
+        tmp = this.name + ": " + message+"\n";
         return tmp;
     }
     

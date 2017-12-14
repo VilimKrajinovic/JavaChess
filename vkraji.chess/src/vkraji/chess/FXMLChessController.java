@@ -198,9 +198,10 @@ public class FXMLChessController implements Initializable {
     
     public void sendMessage() {
         try {
-            ChatInterface tmp = (ChatInterface) this.reg.lookup("client");
+            ChatInterface tmp = (ChatInterface) this.reg.lookup("server");
             
-            tmp.sendMessage(txtMessage.getText());
+            txtChatArea.appendText(tmp.sendMessage(txtMessage.getText()));
+            
             
         } catch (RemoteException ex) {
             Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
