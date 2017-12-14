@@ -16,6 +16,7 @@
             <items>
               <MenuItem fx:id="btnSave" mnemonicParsing="false" onAction="#onSave" text="Save" />
                   <MenuItem fx:id="btnLoad" mnemonicParsing="false" onAction="#onLoad" text="Load" />
+                  <MenuItem fx:id="btnOpenChat" mnemonicParsing="false" onAction="#onOpenChatClick" text="Open chat" />
             </items>
           </Menu>
         </menus>
