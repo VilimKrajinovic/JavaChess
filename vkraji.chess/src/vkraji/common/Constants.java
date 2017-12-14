@@ -42,6 +42,9 @@ public class Constants {
     public static final String CONFIG_PATH     = "config";
     public static final String CONFIG_NAME     = "config.ini";
     public static final int    PORT_NUMBER     = 1234;
+    
+    public static final String SERVER_DEFAULT_NAME = "Server";
+    public static final String CLIENT_DEFAULT_NAME = "Client";
 
     public static int loadConfig(String fileName) throws NamingException{
         
