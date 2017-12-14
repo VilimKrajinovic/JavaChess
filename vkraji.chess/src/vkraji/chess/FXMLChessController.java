@@ -96,10 +96,10 @@ public class FXMLChessController implements Initializable {
         
         if (playerColor == ChessColor.WHITE) {
             FXMLChessController.connection = createServer();
-            initServerChat(playerColor);
+            initServerChat();
         } else {
             FXMLChessController.connection = createClient();
-            initClientChat(playerColor);
+            initClientChat();
             board.setDisable(true);
         }
         
@@ -210,7 +210,7 @@ public class FXMLChessController implements Initializable {
         }
     }
     
-    private void initServerChat(ChessColor playerColor) {
+    private void initServerChat() {
         try {
             
             this.server = new ChatImplementation(Constants.SERVER_DEFAULT_NAME);
@@ -224,7 +224,7 @@ public class FXMLChessController implements Initializable {
         }
     }
     
-    private void initClientChat(ChessColor playerColor) {
+    private void initClientChat() {
         try {
             
             this.client = new ChatImplementation(Constants.CLIENT_DEFAULT_NAME);
