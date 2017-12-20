@@ -17,5 +17,5 @@ public interface ChatInterface extends Remote {
     String getName() throws RemoteException;
     String sendMessage(String message) throws RemoteException;
     ArrayList<String> getMessages() throws RemoteException;
-    
+    ArrayList<String> getMessagesOffline() throws RemoteException;
 }

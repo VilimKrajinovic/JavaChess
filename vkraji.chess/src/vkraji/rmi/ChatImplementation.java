@@ -26,9 +26,9 @@ public class ChatImplementation implements ChatInterface {
     public String getName() throws RemoteException {
         return this.name;
     }
-    
-    public void sendMessageOffline(String message){
-        messages.add(message);
+
+    public void sendMessageOffline(String message) {
+        messages.add(message + "\n");
     }
 
     @Override
@@ -41,6 +41,11 @@ public class ChatImplementation implements ChatInterface {
 
     @Override
     public ArrayList<String> getMessages() throws RemoteException {
+        return messages;
+    }
+
+    @Override
+    public ArrayList<String> getMessagesOffline() throws RemoteException {
         return messages;
     }
 

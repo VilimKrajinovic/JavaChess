@@ -23,6 +23,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -82,6 +83,10 @@ public class FXMLChessController implements Initializable {
 
     ChatImplementation server;
     ArrayList<String> messages = new ArrayList<>();
+    Thread serverMessageThread;
+    Thread clientMessageThread;
+    Timer timer = new Timer();
+    private final Object timerLock = new Object();
 
     /**
      * Initializes the controller class.
@@ -103,18 +108,17 @@ public class FXMLChessController implements Initializable {
 
                 ChatInterface stub = (ChatInterface) UnicastRemoteObject.exportObject(server, 0);
                 reg.rebind(Constants.SERVER_DEFAULT_NAME, stub);
-                
+
                 txtChatArea.appendText("Server ready, waiting for client...\n");
+                startServerMessageThread();
+
             } catch (RemoteException ex) {
                 txtChatArea.appendText(ex.getMessage() + "\n");
             }
-
-            //initServerChat();
         } else {
             FXMLChessController.connection = createClient();
-
-            //initClientChat();
             board.setDisable(true);
+            startClientMessageThread();
         }
 
         try {
@@ -125,16 +129,88 @@ public class FXMLChessController implements Initializable {
         }
 
         Timer t = new Timer();
-        int delay = 1000;
         TimerTask clockTask = new TimerTask() {
             @Override
             public void run() {
                 Platform.runLater(new TimeThread(lblTime));
             }
         };
-        t.scheduleAtFixedRate(clockTask, 0, delay);
+        t.scheduleAtFixedRate(clockTask, 0, Constants.INTERVAL);
 
         DocumentationWriter.printDocumentation();
+    }
+
+    public void startServerMessageThread() {
+        this.serverMessageThread = new Thread(() -> {
+            while (true) {
+                synchronized (timerLock) {
+                    try {
+                        timer.scheduleAtFixedRate(new TimerTask() {
+                            @Override
+                            public void run() {
+                                Platform.runLater(() -> {
+                                    try {
+                                        txtChatArea.clear();
+                                        for (String message : server.getMessages()) {
+                                            txtChatArea.appendText(message);
+                                        }
+                                    } catch (RemoteException ex) {
+                                        Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                });
+                            }
+                        }, Calendar.getInstance()
+                                .getTime(), Constants.INTERVAL);
+                        timerLock.wait(Constants.INTERVAL);
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+        });
+        serverMessageThread.setName("Server RMI thread");
+        serverMessageThread.start();
+    }
+
+    public void startClientMessageThread() {
+        this.clientMessageThread = new Thread(() -> {
+            while (true) {
+                synchronized (timerLock) {
+                    try {
+                        timer.scheduleAtFixedRate(new TimerTask() {
+                            @Override
+                            public void run() {
+                                Platform.runLater(() -> {
+                                    try {
+                                        Registry reg = LocateRegistry.getRegistry(Constants.RMI_PORT_NUMBER);
+                                        ChatInterface stub = (ChatInterface) reg.lookup(Constants.SERVER_DEFAULT_NAME);
+
+                                        txtChatArea.clear();
+                                        for (String message : stub.getMessages()) {
+                                            txtChatArea.appendText(message);
+                                        }
+
+                                    } catch (RemoteException ex) {
+                                        Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
+                                    } catch (NotBoundException ex) {
+                                        Logger.getLogger(FXMLChessController.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+
+                                });
+                            }
+                        }, Calendar.getInstance()
+                                .getTime(), Constants.INTERVAL);
+                        timerLock.wait(Constants.INTERVAL);
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+        });
+        clientMessageThread.setName("Client RMI thread");
+        clientMessageThread.start();
     }
 
     public void choosePlayerColor() {
@@ -216,24 +292,17 @@ public class FXMLChessController implements Initializable {
 
     public void btnSendMessage() {
         try {
-            if (this.playerColor == ChessColor.WHITE) {
-                txtChatArea.appendText("White: " + txtMessage.getText()+"\n");
-                //spremiti u neki array za crnog i dodat id
-                server.sendMessageOffline("White: " + txtMessage.getText()+"\n");
-                messages.add(txtMessage.getText());
+            if (this.playerColor == ChessColor.WHITE && !txtMessage.getText().equals("")) {
+                server.sendMessageOffline("White: " + txtMessage.getText());
+                txtMessage.setText("");
             }
 
             if (this.playerColor == ChessColor.BLACK) {
                 Registry reg = LocateRegistry.getRegistry(Constants.RMI_PORT_NUMBER);
                 ChatInterface stub = (ChatInterface) reg.lookup(Constants.SERVER_DEFAULT_NAME);
-                if (stub != null) {
-                    txtChatArea.setText("");
-                    
-                    ArrayList<String> tmp = stub.getMessages();
-                    for (String message : tmp) {
-                        txtChatArea.appendText(message);
-                    }   
-                    txtChatArea.appendText(stub.sendMessage("Black: " + txtMessage.getText()+"\n"));
+                if (stub != null && !txtMessage.getText().equals("")) {
+                    stub.sendMessage("Black: " + txtMessage.getText());
+                    txtMessage.setText("");
                 }
             }
 
