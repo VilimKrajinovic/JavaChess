@@ -5,6 +5,8 @@
  */
 package vkraji.chess.models;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -15,6 +17,18 @@ import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javax.naming.NamingException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 import vkraji.chess.FXMLChessController;
 import vkraji.chess.models.pieces.Bishop;
 import vkraji.chess.models.pieces.King;
@@ -32,15 +46,58 @@ import vkraji.common.Constants;
  */
 public class ChessBoard extends GridPane {
 
-    private         Label              lblChessTimer;
-    private         Thread             timerThread;
-    private final   Object             timerLock     = new Object();
-    private int                        timeLeft;
-    Timer                              timer         = new Timer();
+    private Label lblChessTimer;
+    private Thread timerThread;
+    private final Object timerLock = new Object();
+    private int timeLeft;
+    //private Element rootElement;
+    //private Document doc;
+    Timer timer = new Timer();
 
-    protected static Field[][] fields        = new Field[8][8];
-    private static Field       selectedField = null;
-    private boolean            timerPaused   = false;
+    protected static Field[][] fields = new Field[8][8];
+    private static Field selectedField = null;
+    private boolean timerPaused = false;
+
+    public ChessBoard(Label lblChessTimer, ChessColor playerColor) {
+        super();
+
+        this.getStylesheets().add("vkraji/chess/fxmlchess.css");
+        this.lblChessTimer = lblChessTimer;
+
+        try {
+            int tmp = Constants.loadConfig(Constants.CONFIG_NAME);
+            this.lblChessTimer.setText(Integer.toString(tmp / 1000));
+            this.timeLeft = Constants.loadConfig(Constants.CONFIG_NAME);
+        } catch (NamingException ex) {
+            Logger.getLogger(ChessBoard.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        for (int x = 0; x < 8; ++x) {
+            for (int y = 0; y < 8; ++y) {
+                if ((x + y) % 2 != 0) {
+                    fields[x][y] = new Field(ChessColor.WHITE, x, y);
+                } else {
+                    fields[x][y] = new Field(ChessColor.BLACK, x, y);
+                }
+
+                if (playerColor == ChessColor.WHITE) {
+                    this.add(fields[x][y], x, 7 - y);
+                } else {
+                    this.add(fields[x][y], 7 - x, y);
+                }
+
+                final int xPosition = x;
+                final int yPosition = y;
+                fields[x][y]
+                        .setOnAction(e -> onFieldClick(xPosition, yPosition));
+            }
+        }
+
+        createXML();
+        createTimer();
+        pauseTimer();
+        this.initializeBoard();
+    }
 
     public Field[][] getFields() {
         return fields;
@@ -95,53 +152,10 @@ public class ChessBoard extends GridPane {
         }
     }
 
-    public ChessBoard(Label lblChessTimer, ChessColor playerColor) {
-        super();
-
-        this.getStylesheets().add("vkraji/chess/fxmlchess.css");
-        this.lblChessTimer = lblChessTimer;
-        
-        try {
-            int tmp = Constants.loadConfig(Constants.CONFIG_NAME);
-            
-            this.lblChessTimer.setText(Integer.toString(tmp/1000));
-            this.timeLeft = Constants.loadConfig(Constants.CONFIG_NAME);
-        } catch (NamingException ex) {
-            Logger.getLogger(ChessBoard.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        this.setMinSize(400, 400);
-        this.setMaxSize(400, 400);
-
-        for (int x = 0; x < 8; ++x) {
-            for (int y = 0; y < 8; ++y) {
-                if ((x + y) % 2 != 0) {
-                    fields[x][y] = new Field(ChessColor.WHITE, x, y);
-                } else {
-                    fields[x][y] = new Field(ChessColor.BLACK, x, y);
-                }
-
-                if (playerColor == ChessColor.WHITE) {
-                    this.add(fields[x][y], x, 7 - y);
-                } else {
-                    this.add(fields[x][y], 7 - x, y);
-                }
-
-                final int xPosition = x;
-                final int yPosition = y;
-                fields[x][y]
-                        .setOnAction(e -> onFieldClick(xPosition, yPosition));
-            }
-        }
-
-        createTimer();
-        pauseTimer();
-        this.initializeBoard();
-    }
-
     public boolean sendMove(Move m) {
         try {
             FXMLChessController.connection.send(m);
+            addMoveToXML(m);
         } catch (Exception e) {
             System.out.println("Failed to send move");
             return false;
@@ -157,7 +171,7 @@ public class ChessBoard extends GridPane {
         if (ChessBoard.selectedField != null
                 && ChessBoard.selectedField.isOccupied()
                 && clickedField.getPieceColor() != ChessBoard.selectedField
-                        .getPieceColor()) {
+                .getPieceColor()) {
 
             Move move = new Move(ChessBoard.selectedField.getX(),
                     ChessBoard.selectedField.getY(), x, y);
@@ -268,7 +282,7 @@ public class ChessBoard extends GridPane {
         piece = oldField.getPiece();
         movement = piece.getMovement();
 
-        // JUST TO COMPILE; CHANGE LATER
+        // TODO JUST TO COMPILE; CHANGE LATER
         return true;
     }
 
@@ -288,6 +302,62 @@ public class ChessBoard extends GridPane {
         synchronized (timerLock) {
             this.timerPaused = false;
             timerLock.notifyAll();
+        }
+    }
+
+    private void createXML() {
+
+        try {
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+
+            Document doc = docBuilder.newDocument();
+            Element rootElement = doc.createElement("ChessGame");
+            doc.appendChild(rootElement);
+
+            Element ispit = doc.createElement("Moves");
+            rootElement.appendChild(ispit);
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(new File("chessgame.xml"));
+
+            transformer.transform(source, result);
+
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(ChessBoard.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TransformerConfigurationException ex) {
+            Logger.getLogger(ChessBoard.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TransformerException ex) {
+            Logger.getLogger(ChessBoard.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void addMoveToXML(Move m) {
+
+        try {
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            Document document = documentBuilder.parse("chessgame.xml");
+            Element root = document.getDocumentElement();
+
+            Element move = document.createElement("Move");
+            move.setAttribute("newX", Integer.toString(m.getNewX()));
+            move.setAttribute("newY", Integer.toString(m.getNewY()));
+            move.setAttribute("oldX", Integer.toString(m.getOldX()));
+            move.setAttribute("oldY", Integer.toString(m.getOldY()));
+            root.getChildNodes().item(0).appendChild(move);
+
+            DOMSource source = new DOMSource(document);
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            StreamResult result = new StreamResult("chessgame.xml");
+            transformer.transform(source, result);
+
+        } catch (SAXException | IOException | ParserConfigurationException | TransformerException ex) {
+            Logger.getLogger(ChessBoard.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
