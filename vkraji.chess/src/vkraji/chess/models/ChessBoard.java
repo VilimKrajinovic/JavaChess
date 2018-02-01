@@ -65,6 +65,7 @@ public class ChessBoard extends GridPane {
     private int index = 0;
     private NodeList nList;
     private List<Move> moveList = new ArrayList<>();
+    private boolean isGameOver = false;
     //private Element rootElement;
     //private Document doc;
     Timer timer = new Timer();
@@ -122,7 +123,6 @@ public class ChessBoard extends GridPane {
         this.timerThread = new Thread(() -> {
             while (timeLeft > 0) {
                 synchronized (timerLock) {
-
                     try {
                         if (this.timerPaused == true) {
                             timerLock.wait();
@@ -148,7 +148,6 @@ public class ChessBoard extends GridPane {
                     }
                 }
             }
-
         });
 
         this.timerThread.setName("Timer thread");
@@ -228,6 +227,7 @@ public class ChessBoard extends GridPane {
             Field newField = fields[move.getNewX()][move.getNewY()];
 
             if (newField.getPiece() instanceof King && newField.getPieceColor() != oldField.getPieceColor()) {
+                isGameOver = true;
                 StringBuilder sb = new StringBuilder();
                 sb.append(oldField.getPieceColor().toString());
                 sb.append(" wins the game!");
@@ -300,13 +300,14 @@ public class ChessBoard extends GridPane {
     public void processOpponentMove(Move m) {
         if (processMove(m)) {
             // unlock board
+            if(isGameOver){
+                return;
+            }
             this.setDisable(false);
         }
     }
 
-    @SuppressWarnings("unused")
     private boolean checkMove(Move move) {
-
         Field oldField;
         Piece piece;
         Movement[] movement;
@@ -350,7 +351,6 @@ public class ChessBoard extends GridPane {
                 } catch (Exception e) {
                     break;
                 }
-
                 if (tmpField.isOccupied()) {
                     hasCollided = true;
                     boolean piecesSameColor = tmpField.getPiece().getColor() == oldField.getPiece().getColor();
@@ -359,7 +359,6 @@ public class ChessBoard extends GridPane {
                         break;
                     }
                 }
-
                 if (move.getGapX() == stretchedMoveX && move.getGapY() == stretchedMoveY) {
                     matchesPieceMoves = true;
                     piece.setHasMoved(true);
@@ -370,7 +369,6 @@ public class ChessBoard extends GridPane {
         if (!matchesPieceMoves) {
             return false;
         }
-
         return true;
     }
 

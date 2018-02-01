@@ -38,6 +38,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -226,17 +227,22 @@ public class FXMLChessController implements Initializable {
         newGameAlert.setTitle("Start new game");
         newGameAlert.setHeaderText(null);
         newGameAlert.setContentText("Pick team color");
+        
 
         ButtonType buttonTypeWhite = new ButtonType("White (Server)");
         ButtonType buttonTypeBlack = new ButtonType("Black (Client)");
+        ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+       
 
-        newGameAlert.getButtonTypes().setAll(buttonTypeWhite, buttonTypeBlack);
+        newGameAlert.getButtonTypes().setAll(buttonTypeWhite, buttonTypeBlack, buttonTypeCancel);
         Optional<ButtonType> result = newGameAlert.showAndWait();
 
         if (result.get() == buttonTypeWhite) {
             this.playerColor = ChessColor.WHITE;
         } else if (result.get() == buttonTypeBlack) {
             this.playerColor = ChessColor.BLACK;
+        }else{
+            System.exit(0);
         }
     }
 
