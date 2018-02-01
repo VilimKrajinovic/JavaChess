@@ -76,12 +76,18 @@ public class FXMLChessController implements Initializable {
 
     @FXML
     private Button btnSend;
+    
+    @FXML
+    private Button btnNext;
+    
+    @FXML
+    private Button btnPrevious;
 
     public static ChessNetworkConnection connection;
     ChessBoard board;
     ChessColor playerColor;
 
-    ChatImplementation server;
+    public static ChatImplementation server;
     ArrayList<String> messages = new ArrayList<>();
     Thread serverMessageThread;
     Thread clientMessageThread;
@@ -98,6 +104,8 @@ public class FXMLChessController implements Initializable {
         choosePlayerColor();
         board = new ChessBoard(lblChessTimer, playerColor);
         bpMain.setCenter(board);
+        btnNext.setDisable(true);
+        btnPrevious.setDisable(true);
 
         if (playerColor == ChessColor.WHITE) {
             FXMLChessController.connection = createServer();
@@ -279,15 +287,13 @@ public class FXMLChessController implements Initializable {
         try (ObjectOutputStream oos = new ObjectOutputStream(
                 new FileOutputStream(Constants.FILE_NAME))) {
             oos.writeObject(board.getFields());
+            System.out.println("Spremam xml");
+            board.saveXML();
 
         } catch (IOException ex) {
             Logger.getLogger(FXMLChessController.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
-    }
-
-    public void onOpenChatClick() {
-
     }
 
     public void btnSendMessage() {
@@ -311,6 +317,21 @@ public class FXMLChessController implements Initializable {
         } catch (NotBoundException ex) {
             System.out.println("Still no client");
         }
+    }
+    
+    
+    public void replayMode(){
+        btnNext.setDisable(false);
+        btnPrevious.setDisable(false);
+        board.loadXML();
+    }
+    
+    public void nextMove(){
+        board.nextMove();
+    }
+    
+    public void previousMove(){
+        board.previousMove();
     }
 
     public static class DocumentationWriter {

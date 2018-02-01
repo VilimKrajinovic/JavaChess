@@ -7,7 +7,16 @@ package vkraji.chess.models;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.rmi.AccessException;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -28,6 +37,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import vkraji.chess.FXMLChessController;
 import vkraji.chess.models.pieces.Bishop;
@@ -39,6 +50,7 @@ import vkraji.chess.models.pieces.Piece;
 import vkraji.chess.models.pieces.Queen;
 import vkraji.chess.models.pieces.Rook;
 import vkraji.common.Constants;
+import vkraji.rmi.ChatInterface;
 
 /**
  *
@@ -50,6 +62,9 @@ public class ChessBoard extends GridPane {
     private Thread timerThread;
     private final Object timerLock = new Object();
     private int timeLeft;
+    private int index = 0;
+    private NodeList nList;
+    private List<Move> moveList = new ArrayList<>();
     //private Element rootElement;
     //private Document doc;
     Timer timer = new Timer();
@@ -93,7 +108,7 @@ public class ChessBoard extends GridPane {
             }
         }
 
-        createXML();
+        //createXML();
         createTimer();
         pauseTimer();
         this.initializeBoard();
@@ -153,10 +168,12 @@ public class ChessBoard extends GridPane {
     }
 
     public boolean sendMove(Move m) {
+        this.setDisable(true);
+        pauseTimer();
         try {
             FXMLChessController.connection.send(m);
-            addMoveToXML(m);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             System.out.println("Failed to send move");
             return false;
         }
@@ -177,10 +194,7 @@ public class ChessBoard extends GridPane {
                     ChessBoard.selectedField.getY(), x, y);
 
             if (this.processMove(move)) {
-                if (this.sendMove(move)) {
-                    pauseTimer();
-                    this.setDisable(true);
-                }
+                this.sendMove(move);
             }
 
             this.setSelectedField(null);
@@ -213,7 +227,36 @@ public class ChessBoard extends GridPane {
             Field oldField = fields[move.getOldX()][move.getOldY()];
             Field newField = fields[move.getNewX()][move.getNewY()];
 
+            if (newField.getPiece() instanceof King && newField.getPieceColor() != oldField.getPieceColor()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(oldField.getPieceColor().toString());
+                sb.append(" wins the game!");
+
+                try {
+                    if (oldField.getPieceColor() == ChessColor.WHITE) {
+                        FXMLChessController.server.sendMessageOffline(sb.toString());
+                        this.setDisable(true);
+                    } else {
+                        Registry reg = LocateRegistry.getRegistry(Constants.RMI_PORT_NUMBER);
+                        ChatInterface stub = (ChatInterface) reg.lookup(Constants.SERVER_DEFAULT_NAME);
+                        if (stub != null) {
+                            stub.sendMessage(sb.toString());
+                        }
+                    }
+                } catch (RemoteException ex) {
+                    Logger.getLogger(ChessBoard.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (NotBoundException ex) {
+                    Logger.getLogger(ChessBoard.class.getName()).log(Level.SEVERE, null, ex);
+                } catch(NullPointerException ex){
+                    System.out.println(ex.getMessage());
+                    this.setDisable(true);
+                }
+                System.out.println(sb.toString());
+            }
+
             newField.setPiece(oldField.releasePiece());
+
+            addMoveToList(move);
 
             resetTimer();
             resumeTimer();
@@ -265,7 +308,6 @@ public class ChessBoard extends GridPane {
     private boolean checkMove(Move move) {
 
         Field oldField;
-        Field newField;
         Piece piece;
         Movement[] movement;
 
@@ -276,13 +318,59 @@ public class ChessBoard extends GridPane {
         pauseTimer();
 
         oldField = fields[move.getOldX()][move.getOldY()];
-        newField = fields[move.getNewX()][move.getOldY()];
 
-        // TODO
         piece = oldField.getPiece();
         movement = piece.getMovement();
 
-        // TODO JUST TO COMPILE; CHANGE LATER
+        boolean matchesPieceMoves = false;
+
+        int multiMoveCount;
+        int stretchedMoveX;
+        int stretchedMoveY;
+
+        MoveLoop:
+        for (Movement m : movement) {
+            multiMoveCount = 1;
+            if (piece.isUsesSingleMove() == false) {
+                multiMoveCount = 8;
+            }
+
+            boolean hasCollided = false;
+            for (int moveCount = 1; moveCount <= multiMoveCount; moveCount++) {
+                if (hasCollided) {
+                    break;
+                }
+
+                stretchedMoveX = m.getX() * moveCount;
+                stretchedMoveY = m.getY() * moveCount;
+
+                Field tmpField;
+                try {
+                    tmpField = fields[move.getOldX() + stretchedMoveX][move.getOldY() + stretchedMoveY];
+                } catch (Exception e) {
+                    break;
+                }
+
+                if (tmpField.isOccupied()) {
+                    hasCollided = true;
+                    boolean piecesSameColor = tmpField.getPiece().getColor() == oldField.getPiece().getColor();
+
+                    if (piecesSameColor) {
+                        break;
+                    }
+                }
+
+                if (move.getGapX() == stretchedMoveX && move.getGapY() == stretchedMoveY) {
+                    matchesPieceMoves = true;
+                    piece.setHasMoved(true);
+                    break MoveLoop;
+                }
+            }
+        }
+        if (!matchesPieceMoves) {
+            return false;
+        }
+
         return true;
     }
 
@@ -306,7 +394,6 @@ public class ChessBoard extends GridPane {
     }
 
     private void createXML() {
-
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -315,8 +402,8 @@ public class ChessBoard extends GridPane {
             Element rootElement = doc.createElement("ChessGame");
             doc.appendChild(rootElement);
 
-            Element ispit = doc.createElement("Moves");
-            rootElement.appendChild(ispit);
+            Element moves = doc.createElement("Moves");
+            rootElement.appendChild(moves);
 
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
@@ -335,7 +422,6 @@ public class ChessBoard extends GridPane {
     }
 
     private void addMoveToXML(Move m) {
-
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -361,4 +447,68 @@ public class ChessBoard extends GridPane {
         }
     }
 
+    public void loadXML() {
+        try {
+            File xmlFile = new File("chessgame.xml");
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(xmlFile);
+            doc.getDocumentElement().normalize();
+
+            nList = doc.getElementsByTagName("Move");
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    public void nextMove() {
+        if (index >= nList.getLength()) {
+            return;
+        }
+        Node node = nList.item(index);
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element element = (Element) node;
+
+            int oldX = Integer.parseInt(element.getAttribute("oldX"));
+            int oldY = Integer.parseInt(element.getAttribute("oldY"));
+            int newX = Integer.parseInt(element.getAttribute("newX"));
+            int newY = Integer.parseInt(element.getAttribute("newY"));
+
+            Move m = new Move(oldX, oldY, newX, newY);
+
+            processMove(m);
+        }
+        index++;
+    }
+
+    public void previousMove() {
+        if (index <= 0) {
+            return;
+        }
+        index--;
+        Node node = nList.item(index);
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element element = (Element) node;
+
+            int oldX = Integer.parseInt(element.getAttribute("newX"));
+            int oldY = Integer.parseInt(element.getAttribute("newY"));
+            int newX = Integer.parseInt(element.getAttribute("oldX"));
+            int newY = Integer.parseInt(element.getAttribute("oldY"));
+
+            Move m = new Move(oldX, oldY, newX, newY);
+
+            processMove(m);
+        }
+    }
+
+    private void addMoveToList(Move m) {
+        moveList.add(m);
+    }
+
+    public void saveXML() {
+        createXML();
+        for (Move move : moveList) {
+            addMoveToXML(move);
+        }
+    }
 }

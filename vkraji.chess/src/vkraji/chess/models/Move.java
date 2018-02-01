@@ -11,7 +11,8 @@ import java.io.Serializable;
  *
  * @author amd
  */
-public class Move implements Serializable{
+public class Move implements Serializable {
+
     private int oldX;
     private int oldY;
     private int newX;
@@ -22,6 +23,14 @@ public class Move implements Serializable{
         this.oldY = oldY;
         this.newX = newX;
         this.newY = newY;
+    }
+
+    public int getGapX() {
+        return newX - oldX;
+    }
+
+    public int getGapY() {
+        return newY - oldY;
     }
 
     public int getOldX() {
@@ -55,5 +64,5 @@ public class Move implements Serializable{
     public void setNewY(int newY) {
         this.newY = newY;
     }
-    
+
 }

@@ -19,7 +19,7 @@
             <items>
               <MenuItem fx:id="btnSave" mnemonicParsing="false" onAction="#onSave" text="Save" />
                   <MenuItem fx:id="btnLoad" mnemonicParsing="false" onAction="#onLoad" text="Load" />
-                  <MenuItem fx:id="btnOpenChat" mnemonicParsing="false" onAction="#onOpenChatClick" text="Open chat" />
+                  <MenuItem fx:id="btnReplay" mnemonicParsing="false" onAction="#replayMode" text="Replay" />
             </items>
           </Menu>
         </menus>
@@ -33,6 +33,8 @@
                   <Font name="Segoe UI Light" size="31.0" />
                </font>
             </Label>
+            <Button fx:id="btnNext" layoutX="7.0" layoutY="35.0" mnemonicParsing="false" onAction="#nextMove" prefHeight="25.0" prefWidth="92.0" text="Next move" />
+            <Button fx:id="btnPrevious" layoutX="6.0" layoutY="66.0" mnemonicParsing="false" onAction="#previousMove" text="Previous move" />
          </children>
       </Pane>
    </right>
